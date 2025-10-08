@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+  shopping-cart:
+    build: "./shopping-cart"
+    ports:
+      - "8085:8085"
+    depends_on:
+      - redis
+      - rabbitmq
+    networks:
+      - shopping
+
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - shopping
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - shopping
+
+  endpoints:
+    web:
+      exposure:
+        include:
+          - metrics
+
+  server:
+    ssl:
+      enabled: true
+      key-store: classpath:keystore.p12
+      key-store-password: 1234567890123456
+      key-store-type: PKCS12
+      key-alias: my_pass
+networks:
+  shopping:
+    driver: bridge
