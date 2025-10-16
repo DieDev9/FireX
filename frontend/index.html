@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firex - Productos Industriales</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header id="header">
+        <nav>
+            <div class="logo">🔥 FIREX</div>
+            <ul class="nav-links">
+                <li><a onclick="mostrarSeccion('inicio')">Inicio</a></li>
+                <li><a onclick="mostrarSeccion('productos')">Productos</a></li>
+                <li><a onclick="mostrarSeccion('categorias')">Categorías</a></li>
+                <li><a onclick="mostrarSeccion('usuarios')">Usuarios</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Agregar después del header -->
+    <div class="user-panel">
+        <span>Bienvenido, <strong class="user-name"></strong></span>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero" id="inicio">
+        <div class="hero-content">
+            <h1>FIREX Productos Industriales</h1>
+            <p>Tu proveedor confiable de productos industriales de alta calidad</p>
+            <button class="cta-button" onclick="mostrarSeccion('productos')">Ver Productos</button>
+        </div>
+    </section>
+
+    <!-- Sección de Productos -->
+    <section class="contenido-seccion" id="productos">
+        <div class="container">
+            <div class="header-seccion">
+                <h2>Gestión de Productos</h2>
+                <button class="btn-primary admin-only" onclick="abrirModalProducto()">+ Nuevo Producto</button>
+            </div>
+
+            <!-- Filtro por categoría -->
+            <div class="filtros">
+                <label>Filtrar por categoría:</label>
+                <select id="filtroCategoria" onchange="filtrarProductos()">
+                    <option value="">Todas las categorías</option>
+                </select>
+            </div>
+
+            <!-- Lista de productos -->
+            <div class="productos-grid" id="productosLista">
+                <p class="loading">Cargando productos...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Categorías -->
+    <section class="contenido-seccion" id="categorias" style="display: none;">
+        <div class="container">
+            <div class="header-seccion">
+                <h2>Gestión de Categorías</h2>
+                <button class="btn-primary admin-only" onclick="abrirModalCategoria()">+ Nueva Categoría</button>
+            </div>
+
+            <!-- Lista de categorías -->
+            <div class="categorias-lista" id="categoriasLista">
+                <p class="loading">Cargando categorías...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Usuarios -->
+    <section class="contenido-seccion" id="usuarios" style="display: none;">
+        <div class="container">
+            <div class="header-seccion">
+                <h2>Gestión de Usuarios</h2>
+                <button class="btn-primary" onclick="abrirModalUsuario()">+ Nuevo Usuario</button>
+            </div>
+
+            <!-- Lista de usuarios -->
+            <div class="usuarios-lista" id="usuariosLista">
+                <p class="loading">Cargando usuarios...</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal Producto -->
+    <div class="modal" id="modalProducto">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModalProducto()">&times;</span>
+            <h2 id="tituloModalProducto">Nuevo Producto</h2>
+            <form id="formProducto" onsubmit="guardarProducto(event)">
+                <input type="hidden" id="productoId">
+
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="productoNombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea id="productoDescripcion" rows="3"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Precio *</label>
+                        <input type="number" id="productoPrecio" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Stock *</label>
+                        <input type="number" id="productoStock" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Categoría *</label>
+                    <select id="productoCategoria" required>
+                        <option value="">Seleccione una categoría</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModalProducto()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Categoría -->
+    <div class="modal" id="modalCategoria">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModalCategoria()">&times;</span>
+            <h2 id="tituloModalCategoria">Nueva Categoría</h2>
+            <form id="formCategoria" onsubmit="guardarCategoria(event)">
+                <input type="hidden" id="categoriaId">
+
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="categoriaNombre" required>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModalCategoria()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Usuario -->
+    <div class="modal" id="modalUsuario">
+        <div class="modal-content">
+            <span class="modal-close" onclick="cerrarModalUsuario()">&times;</span>
+            <h2 id="tituloModalUsuario">Nuevo Usuario</h2>
+            <form id="formUsuario" onsubmit="guardarUsuario(event)">
+                <input type="hidden" id="usuarioId">
+
+                <div class="form-group">
+                    <label>Nombre *</label>
+                    <input type="text" id="usuarioNombre" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Email *</label>
+                    <input type="email" id="usuarioEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" id="usuarioPassword" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="usuarioPhone">
+                </div>
+
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <textarea id="usuarioAddress" rows="2"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Rol *</label>
+                    <select id="usuarioRole" required>
+                        <option value="USER">Usuario</option>
+                        <option value="ADMIN">Administrador</option>
+                    </select>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn-secondary" onclick="cerrarModalUsuario()">Cancelar</button>
+                    <button type="submit" class="btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 FIREX - Productos Industriales. Todos los derechos reservados.</p>
+    </footer>
+    <script src="js/auth.js"></script>
+    <script>
+        // Verificar autenticación al cargar
+        verificarAutenticacion();
+        aplicarPermisos();
+    </script>
+    <script src="js/script.js"></script>
+</body>
+
+</html>
