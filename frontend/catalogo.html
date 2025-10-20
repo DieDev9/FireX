@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">🔥 FireX Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="recarga.html">Recarga</a></li>
+        <li><a href="solicitudes.html">Mis Solicitudes</a></li>
+        <li><a href="carrito.html">Carrito (<span id="cart-count">0</span>)</a></li>
+        <li id="admin-link" style="display: none;"><a href="admin.html">Admin</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>Catálogo de Productos</h1>
+    
+    <div id="alert-container"></div>
+    
+    <div class="toolbar">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Buscar productos..." style="width: 100%;">
+      </div>
+      <select id="category-filter" style="min-width: 200px;">
+        <option value="">Todas las categorías</option>
+      </select>
+    </div>
+
+    <div class="grid" id="products-grid">
+      <!-- Productos se cargarán aquí -->
+    </div>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    
+    let allProducts = [];
+    let categories = [];
+    
+    // Actualizar contador del carrito
+    qs('#cart-count').textContent = getCartCount();
+    
+    // Mostrar enlace de admin si es admin
+    if (isAdmin()) {
+      qs('#admin-link').style.display = 'block';
+    }
+    
+    // Cargar categorías
+    async function loadCategories() {
+      try {
+        categories = await api('/categorias/list');
+        const select = qs('#category-filter');
+        categories.forEach(cat => {
+          const option = document.createElement('option');
+          option.value = cat.id;
+          option.textContent = cat.name;
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error cargando categorías:', error);
+      }
+    }
+    
+    // Cargar productos
+    async function loadProducts() {
+      try {
+        allProducts = await api('/productos/list');
+        renderProducts(allProducts);
+      } catch (error) {
+        showAlert('Error al cargar productos: ' + error.message, 'error');
+      }
+    }
+    
+    // Renderizar productos
+    function renderProducts(products) {
+      const grid = qs('#products-grid');
+      
+      if (products.length === 0) {
+        grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #7f8c8d;">No se encontraron productos</p>';
+        return;
+      }
+      
+      grid.innerHTML = products.map(product => {
+        const categoryName = categories.find(c => c.id === product.categoryId)?.name || 'Sin categoría';
+        const stockBadge = product.stock > 0 
+          ? `<span class="badge badge-success">${product.stock} disponibles</span>`
+          : '<span class="badge badge-danger">Agotado</span>';
+        
+        const deleteBtn = isAdmin() 
+          ? `<button class="btn btn-danger btn-small" onclick="deleteProduct(${product.id})">🗑️</button>`
+          : '';
+        
+        return `
+          <div class="product-card" data-name="${product.name.toLowerCase()}" data-category="${product.categoryId || ''}">
+            <div class="product-image">🧯</div>
+            <div class="product-body">
+              <h3 class="product-title">${product.name}</h3>
+              <div class="product-price">${formatCOP(product.price)}</div>
+              <div class="product-info">
+                ${stockBadge}
+                <br><small>${categoryName}</small>
+              </div>
+              <div class="product-actions">
+                <button class="btn btn-primary btn-small" onclick="addProductToCart(${product.id}, '${product.name}', ${product.price})" ${product.stock <= 0 ? 'disabled' : ''}>
+                  Agregar
+                </button>
+                ${deleteBtn}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Agregar al carrito
+    window.addProductToCart = function(id, name, price) {
+      addToCart({ id, name, price });
+      showAlert(`${name} agregado al carrito`, 'success');
+      setTimeout(() => location.reload(), 1000);
+    };
+    
+    // Eliminar producto (solo admin)
+    window.deleteProduct = async function(id) {
+      if (!confirm('¿Estás seguro de eliminar este producto?')) return;
+      
+      try {
+        await api(`/productos/${id}`, { method: 'DELETE' });
+        showAlert('Producto eliminado exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        showAlert('Error al eliminar producto: ' + error.message, 'error');
+      }
+    };
+    
+    // Filtros
+    on(qs('#search-input'), 'input', (e) => {
+      const searchTerm = e.target.value.toLowerCase();
+      const categoryId = qs('#category-filter').value;
+      filterProducts(searchTerm, categoryId);
+    });
+    
+    on(qs('#category-filter'), 'change', (e) => {
+      const searchTerm = qs('#search-input').value.toLowerCase();
+      const categoryId = e.target.value;
+      filterProducts(searchTerm, categoryId);
+    });
+    
+    function filterProducts(searchTerm, categoryId) {
+      let filtered = allProducts;
+      
+      if (searchTerm) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm));
+      }
+      
+      if (categoryId) {
+        filtered = filtered.filter(p => p.categoryId == categoryId);
+      }
+      
+      renderProducts(filtered);
+    }
+    
+    // Inicializar
+    (async () => {
+      await loadCategories();
+      await loadProducts();
+    })();
+  </script>
+</body>
+</html>

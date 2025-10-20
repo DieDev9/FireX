@@ -1,220 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firex - Productos Industriales</title>
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
-
 <body>
-    <!-- Header -->
-    <header id="header">
-        <nav>
-            <div class="logo">🔥 FIREX</div>
-            <ul class="nav-links">
-                <li><a onclick="mostrarSeccion('inicio')">Inicio</a></li>
-                <li><a onclick="mostrarSeccion('productos')">Productos</a></li>
-                <li><a onclick="mostrarSeccion('categorias')">Categorías</a></li>
-                <li><a onclick="mostrarSeccion('usuarios')">Usuarios</a></li>
-            </ul>
-        </nav>
-    </header>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">🔥 FireX Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="recarga.html">Recarga</a></li>
+        <li><a href="carrito.html">Carrito (<span id="cart-count">0</span>)</a></li>
+        <li id="admin-link" style="display: none;"><a href="admin.html">Admin</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <!-- Agregar después del header -->
-    <div class="user-panel">
-        <span>Bienvenido, <strong class="user-name"></strong></span>
-        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+  <main class="container">
+    <div class="hero">
+      <h1>Bienvenido a FireX Hub</h1>
+      <p>Tu solución integral para extintores y seguridad contra incendios</p>
+      <div class="hero-actions">
+        <a href="catalogo.html" class="btn btn-primary">Ver Catálogo</a>
+        <a href="recarga.html" class="btn btn-secondary">Solicitar Recarga</a>
+      </div>
     </div>
 
-    <!-- Hero Section -->
-    <section class="hero" id="inicio">
-        <div class="hero-content">
-            <h1>FIREX Productos Industriales</h1>
-            <p>Tu proveedor confiable de productos industriales de alta calidad</p>
-            <button class="cta-button" onclick="mostrarSeccion('productos')">Ver Productos</button>
+    <section>
+      <h2 style="text-align: center; margin-bottom: 2rem;">¿Por qué elegirnos?</h2>
+      <div class="grid">
+        <div class="card">
+          <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🛡️</div>
+          <h3 style="text-align: center; margin-bottom: 0.5rem;">Calidad Garantizada</h3>
+          <p style="text-align: center; color: #7f8c8d;">Productos certificados y de las mejores marcas del mercado</p>
         </div>
+        
+        <div class="card">
+          <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🚚</div>
+          <h3 style="text-align: center; margin-bottom: 0.5rem;">Entrega Rápida</h3>
+          <p style="text-align: center; color: #7f8c8d;">Envíos a toda Colombia en tiempo récord</p>
+        </div>
+        
+        <div class="card">
+          <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">💼</div>
+          <h3 style="text-align: center; margin-bottom: 0.5rem;">Servicio Profesional</h3>
+          <p style="text-align: center; color: #7f8c8d;">Asesoría experta y soporte técnico especializado</p>
+        </div>
+      </div>
     </section>
 
-    <!-- Sección de Productos -->
-    <section class="contenido-seccion" id="productos">
-        <div class="container">
-            <div class="header-seccion">
-                <h2>Gestión de Productos</h2>
-                <button class="btn-primary admin-only" onclick="abrirModalProducto()">+ Nuevo Producto</button>
-            </div>
-
-            <!-- Filtro por categoría -->
-            <div class="filtros">
-                <label>Filtrar por categoría:</label>
-                <select id="filtroCategoria" onchange="filtrarProductos()">
-                    <option value="">Todas las categorías</option>
-                </select>
-            </div>
-
-            <!-- Lista de productos -->
-            <div class="productos-grid" id="productosLista">
-                <p class="loading">Cargando productos...</p>
-            </div>
-        </div>
+    <section style="margin-top: 3rem;">
+      <h2 style="text-align: center; margin-bottom: 2rem;">Productos Destacados</h2>
+      <div class="grid" id="featured-products">
+        <!-- Productos destacados se cargarán aquí -->
+      </div>
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="catalogo.html" class="btn btn-primary">Ver Todos los Productos</a>
+      </div>
     </section>
+  </main>
 
-    <!-- Sección de Categorías -->
-    <section class="contenido-seccion" id="categorias" style="display: none;">
-        <div class="container">
-            <div class="header-seccion">
-                <h2>Gestión de Categorías</h2>
-                <button class="btn-primary admin-only" onclick="abrirModalCategoria()">+ Nueva Categoría</button>
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    
+    // Actualizar contador del carrito
+    qs('#cart-count').textContent = getCartCount();
+    
+    // Mostrar enlace de admin si es admin
+    if (isAdmin()) {
+      qs('#admin-link').style.display = 'block';
+    }
+    
+    // Cargar productos destacados
+    async function loadFeaturedProducts() {
+      try {
+        const products = await api('/productos/list');
+        const featured = products.slice(0, 3);
+        
+        const container = qs('#featured-products');
+        container.innerHTML = featured.map(product => `
+          <div class="product-card">
+            <div class="product-image">🧯</div>
+            <div class="product-body">
+              <h3 class="product-title">${product.name}</h3>
+              <div class="product-price">${formatCOP(product.price)}</div>
+              <div class="product-info">
+                Stock: ${product.stock > 0 ? `<span class="badge badge-success">${product.stock} disponibles</span>` : '<span class="badge badge-danger">Agotado</span>'}
+              </div>
+              <a href="catalogo.html" class="btn btn-primary btn-small" style="width: 100%;">Ver en Catálogo</a>
             </div>
-
-            <!-- Lista de categorías -->
-            <div class="categorias-lista" id="categoriasLista">
-                <p class="loading">Cargando categorías...</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Sección de Usuarios -->
-    <section class="contenido-seccion" id="usuarios" style="display: none;">
-        <div class="container">
-            <div class="header-seccion">
-                <h2>Gestión de Usuarios</h2>
-                <button class="btn-primary" onclick="abrirModalUsuario()">+ Nuevo Usuario</button>
-            </div>
-
-            <!-- Lista de usuarios -->
-            <div class="usuarios-lista" id="usuariosLista">
-                <p class="loading">Cargando usuarios...</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Modal Producto -->
-    <div class="modal" id="modalProducto">
-        <div class="modal-content">
-            <span class="modal-close" onclick="cerrarModalProducto()">&times;</span>
-            <h2 id="tituloModalProducto">Nuevo Producto</h2>
-            <form id="formProducto" onsubmit="guardarProducto(event)">
-                <input type="hidden" id="productoId">
-
-                <div class="form-group">
-                    <label>Nombre *</label>
-                    <input type="text" id="productoNombre" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea id="productoDescripcion" rows="3"></textarea>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Precio *</label>
-                        <input type="number" id="productoPrecio" step="0.01" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Stock *</label>
-                        <input type="number" id="productoStock" required>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Categoría *</label>
-                    <select id="productoCategoria" required>
-                        <option value="">Seleccione una categoría</option>
-                    </select>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="button" class="btn-secondary" onclick="cerrarModalProducto()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Categoría -->
-    <div class="modal" id="modalCategoria">
-        <div class="modal-content">
-            <span class="modal-close" onclick="cerrarModalCategoria()">&times;</span>
-            <h2 id="tituloModalCategoria">Nueva Categoría</h2>
-            <form id="formCategoria" onsubmit="guardarCategoria(event)">
-                <input type="hidden" id="categoriaId">
-
-                <div class="form-group">
-                    <label>Nombre *</label>
-                    <input type="text" id="categoriaNombre" required>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="button" class="btn-secondary" onclick="cerrarModalCategoria()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Modal Usuario -->
-    <div class="modal" id="modalUsuario">
-        <div class="modal-content">
-            <span class="modal-close" onclick="cerrarModalUsuario()">&times;</span>
-            <h2 id="tituloModalUsuario">Nuevo Usuario</h2>
-            <form id="formUsuario" onsubmit="guardarUsuario(event)">
-                <input type="hidden" id="usuarioId">
-
-                <div class="form-group">
-                    <label>Nombre *</label>
-                    <input type="text" id="usuarioNombre" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Email *</label>
-                    <input type="email" id="usuarioEmail" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Password *</label>
-                    <input type="password" id="usuarioPassword" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Teléfono</label>
-                    <input type="text" id="usuarioPhone">
-                </div>
-
-                <div class="form-group">
-                    <label>Dirección</label>
-                    <textarea id="usuarioAddress" rows="2"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>Rol *</label>
-                    <select id="usuarioRole" required>
-                        <option value="USER">Usuario</option>
-                        <option value="ADMIN">Administrador</option>
-                    </select>
-                </div>
-
-                <div class="form-buttons">
-                    <button type="button" class="btn-secondary" onclick="cerrarModalUsuario()">Cancelar</button>
-                    <button type="submit" class="btn-primary">Guardar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <footer>
-        <p>&copy; 2025 FIREX - Productos Industriales. Todos los derechos reservados.</p>
-    </footer>
-    <script src="js/auth.js"></script>
-    <script>
-        // Verificar autenticación al cargar
-        verificarAutenticacion();
-        aplicarPermisos();
-    </script>
-    <script src="js/script.js"></script>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error cargando productos destacados:', error);
+      }
+    }
+    
+    loadFeaturedProducts();
+  </script>
 </body>
-
 </html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Solicitudes - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">🔥 FireX Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="recarga.html">Recarga</a></li>
+        <li><a href="solicitudes.html">Mis Solicitudes</a></li>
+        <li><a href="carrito.html">Carrito (<span id="cart-count">0</span>)</a></li>
+        <li id="admin-link" style="display: none;"><a href="admin.html">Admin</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="card">
+      <h1>Mis Solicitudes de Recarga</h1>
+      <p style="color: #7f8c8d; margin-bottom: 2rem;">Aquí puedes ver el estado de todas tus solicitudes de recarga</p>
+      
+      <div id="alert-container"></div>
+      
+      <div id="solicitudes-container">
+        <!-- Solicitudes se cargarán aquí -->
+      </div>
+    </div>
+    
+    <!-- Modal para ver detalles y timeline -->
+    <div id="detail-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+      <div class="card" style="max-width: 600px; margin: 2rem auto; max-height: 80vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h2 id="modal-title">Detalle de Solicitud</h2>
+          <button onclick="closeModal()" class="btn btn-ghost">✕</button>
+        </div>
+        <div id="modal-content">
+          <!-- Contenido del modal -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    
+    const user = getUser();
+    
+    // Actualizar contador del carrito
+    qs('#cart-count').textContent = getCartCount();
+    
+    // Mostrar enlace de admin si es admin
+    if (isAdmin()) {
+      qs('#admin-link').style.display = 'block';
+    }
+    
+    function loadSolicitudes() {
+      const solicitudes = listRecargasByUser(user.email);
+      const container = qs('#solicitudes-container');
+      
+      if (solicitudes.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">📋</div>
+            <h3>No tienes solicitudes de recarga</h3>
+            <p style="color: #7f8c8d; margin: 1rem 0 2rem;">Crea tu primera solicitud para comenzar</p>
+            <a href="recarga.html" class="btn btn-primary">Crear Nueva Recarga</a>
+          </div>
+        `;
+        return;
+      }
+      
+      // Ordenar por fecha de creación (más reciente primero)
+      solicitudes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      const statusColors = {
+        'PENDIENTE': 'badge-warning',
+        'RECOGIDO': 'badge-info',
+        'EN_RECARGA': 'badge-primary',
+        'LISTO': 'badge-success',
+        'ENTREGADO': 'badge-success'
+      };
+      
+      container.innerHTML = `
+        <div style="overflow-x: auto;">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha Creación</th>
+                <th>Tipo</th>
+                <th>Franja</th>
+                <th>Dirección</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Última Actualización</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${solicitudes.map(s => `
+                <tr>
+                  <td><strong>${s.id}</strong></td>
+                  <td>${new Date(s.createdAt).toLocaleDateString('es-CO')}</td>
+                  <td>${s.tipo}</td>
+                  <td>${s.franja}</td>
+                  <td>${s.direccion}</td>
+                  <td>${s.telefono}</td>
+                  <td><span class="badge ${statusColors[s.status]}">${s.status}</span></td>
+                  <td>${new Date(s.updatedAt).toLocaleString('es-CO')}</td>
+                  <td>
+                    <button class="btn btn-primary btn-small" onclick="showDetail('${s.id}')">Ver Detalle</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+    
+    // Mostrar detalle con timeline
+    window.showDetail = function(id) {
+      const recarga = getRecargaById(id);
+      if (!recarga) return;
+      
+      const statusColors = {
+        'PENDIENTE': 'badge-warning',
+        'RECOGIDO': 'badge-info',
+        'EN_RECARGA': 'badge-primary',
+        'LISTO': 'badge-success',
+        'ENTREGADO': 'badge-success'
+      };
+      
+      const modalContent = qs('#modal-content');
+      modalContent.innerHTML = `
+        <div style="margin-bottom: 2rem;">
+          <h3>Información General</h3>
+          <div style="display: grid; gap: 0.5rem; margin-top: 1rem;">
+            <p><strong>ID:</strong> ${recarga.id}</p>
+            <p><strong>Correo:</strong> ${recarga.userEmail}</p>
+            <p><strong>Tipo de Extintor:</strong> ${recarga.tipo}</p>
+            <p><strong>Estado del Extintor:</strong> ${recarga.estadoExtintor}</p>
+            <p><strong>Fecha Preferida:</strong> ${recarga.fecha}</p>
+            <p><strong>Franja Horaria:</strong> ${recarga.franja}</p>
+            <p><strong>Dirección:</strong> ${recarga.direccion}</p>
+            <p><strong>Teléfono:</strong> ${recarga.telefono}</p>
+            ${recarga.observaciones ? `<p><strong>Observaciones:</strong> ${recarga.observaciones}</p>` : ''}
+            <p><strong>Estado Actual:</strong> <span class="badge ${statusColors[recarga.status]}">${recarga.status}</span></p>
+          </div>
+        </div>
+        
+        <div>
+          <h3>Historial de Estados</h3>
+          <div style="margin-top: 1rem;">
+            ${recarga.timeline.map((entry, index) => `
+              <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; ${index < recarga.timeline.length - 1 ? 'border-bottom: 1px solid #ecf0f1;' : ''}">
+                <div style="flex-shrink: 0;">
+                  <div style="width: 12px; height: 12px; border-radius: 50%; background: #e74c3c; margin-top: 0.25rem;"></div>
+                </div>
+                <div style="flex: 1;">
+                  <div><span class="badge ${statusColors[entry.status]}">${entry.status}</span></div>
+                  <div style="font-size: 0.875rem; color: #7f8c8d; margin-top: 0.25rem;">
+                    ${new Date(entry.ts).toLocaleString('es-CO')}
+                  </div>
+                  <div style="font-size: 0.875rem; color: #95a5a6;">
+                    Por: ${entry.by}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+      
+      qs('#modal-title').textContent = `Solicitud ${recarga.id}`;
+      qs('#detail-modal').style.display = 'block';
+    };
+    
+    window.closeModal = function() {
+      qs('#detail-modal').style.display = 'none';
+    };
+    
+    // Cerrar modal al hacer clic fuera
+    on(qs('#detail-modal'), 'click', (e) => {
+      if (e.target.id === 'detail-modal') {
+        closeModal();
+      }
+    });
+    
+    // Mostrar mensaje si se acaba de crear una solicitud
+    const urlParams = new URLSearchParams(window.location.search);
+    const createdId = urlParams.get('created');
+    if (createdId) {
+      showAlert(`Solicitud ${createdId} creada exitosamente`, 'success');
+      // Limpiar el parámetro de la URL
+      window.history.replaceState({}, document.title, 'solicitudes.html');
+    }
+    
+    // Inicializar
+    loadSolicitudes();
+  </script>
+</body>
+</html>
