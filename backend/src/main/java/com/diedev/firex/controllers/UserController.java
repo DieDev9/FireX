@@ -36,13 +36,13 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    // Edpoint para actualizar el perfil del usuario
+    // Actualizar perfil (FIX): aplica cambios y guarda usando el servicio
     @PutMapping("/perfil/{id}")
     public ResponseEntity<AppUser> actualizarPerfil(@PathVariable Long id, @RequestBody AppUser user) {
-        AppUser updateProfile = userService.obtenerUsuariosById(id);
+        AppUser updateProfile = userService.actualizarUsuario(user, id);
         return ResponseEntity.ok(updateProfile);
-
     }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<AppUser> actualizarUser(@PathVariable Long id, @RequestBody AppUser user){
         AppUser updateUser = userService.actualizarUsuario(user, id);

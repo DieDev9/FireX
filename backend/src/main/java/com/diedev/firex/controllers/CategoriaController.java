@@ -38,8 +38,20 @@ public class CategoriaController {
     // Actualizar una categoría
     @PutMapping("/")
     public ResponseEntity<Categoria> editar(@RequestBody Categoria categoria) {
-        Categoria obj = categoriaService.buscarCategoria(categoria.getId());
-        return new ResponseEntity<>(obj, HttpStatus.OK);
+        if (categoria.getId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Categoria actual = categoriaService.buscarCategoria(categoria.getId());
+        if (actual == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Campos a actualizar
+        actual.setName(categoria.getName());
+
+        Categoria guardada = categoriaService.nuevaCategoria(actual); // save
+        return ResponseEntity.ok(guardada);
     }
 
     // Eliminar una categoría
