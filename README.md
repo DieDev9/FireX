@@ -187,10 +187,9 @@ spring.jpa.hibernate.ddl-auto=update
 server.port=8066
 ```
 
-Crear la base:
-```sql
-CREATE DATABASE tienda_db;
-```
+### Diagrama de la base de datos
+![Diagrama de base de datos](./img/tienda_db.png)
+
 
 ---
 
