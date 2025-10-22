@@ -270,8 +270,3 @@ http://localhost:8066/swagger-ui/index.html
 - Roles (Admin, Cliente, Técnico)  
 - Dashboard con métricas  
 
----
-
-## Licencia
-Proyecto académico bajo licencia MIT.  
-Equipo FireX Hub © 2025.
