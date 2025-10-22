@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">🔥 FireX Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="recarga.html">Recarga</a></li>
+        <li><a href="carrito.html">Carrito (<span id="cart-count">0</span>)</a></li>
+        <li id="admin-link" style="display: none;"><a href="admin.html">Admin</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="hero">
+      <h1>Bienvenido a FireX Hub</h1>
+      <p>Tu solución integral para extintores y seguridad contra incendios</p>
+      <div class="hero-actions">
+        <a href="catalogo.html" class="btn btn-primary">Ver Catálogo</a>
+        <a href="recarga.html" class="btn btn-secondary">Solicitar Recarga</a>
+      </div>
+    </div>
+
+    <section>
+      <h2 style="text-align: center; margin-bottom: 2rem;">¿Por qué elegirnos?</h2>
+      <div class="grid">
+        <div class="card">
+          <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🛡️</div>
+          <h3 style="text-align: center; margin-bottom: 0.5rem;">Calidad Garantizada</h3>
+          <p style="text-align: center; color: #7f8c8d;">Productos certificados y de las mejores marcas del mercado</p>
+        </div>
+        
+        <div class="card">
+          <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">🚚</div>
+          <h3 style="text-align: center; margin-bottom: 0.5rem;">Entrega Rápida</h3>
+          <p style="text-align: center; color: #7f8c8d;">Envíos a toda Colombia en tiempo récord</p>
+        </div>
+        
+        <div class="card">
+          <div style="font-size: 3rem; text-align: center; margin-bottom: 1rem;">💼</div>
+          <h3 style="text-align: center; margin-bottom: 0.5rem;">Servicio Profesional</h3>
+          <p style="text-align: center; color: #7f8c8d;">Asesoría experta y soporte técnico especializado</p>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top: 3rem;">
+      <h2 style="text-align: center; margin-bottom: 2rem;">Productos Destacados</h2>
+      <div class="grid" id="featured-products">
+        <!-- Productos destacados se cargarán aquí -->
+      </div>
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="catalogo.html" class="btn btn-primary">Ver Todos los Productos</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    
+    // Actualizar contador del carrito
+    qs('#cart-count').textContent = getCartCount();
+    
+    // Mostrar enlace de admin si es admin
+    if (isAdmin()) {
+      qs('#admin-link').style.display = 'block';
+    }
+    
+    // Cargar productos destacados
+    async function loadFeaturedProducts() {
+      try {
+        const products = await api('/productos/list');
+        const featured = products.slice(0, 3);
+        
+        const container = qs('#featured-products');
+        container.innerHTML = featured.map(product => `
+          <div class="product-card">
+            <div class="product-image">🧯</div>
+            <div class="product-body">
+              <h3 class="product-title">${product.name}</h3>
+              <div class="product-price">${formatCOP(product.price)}</div>
+              <div class="product-info">
+                Stock: ${product.stock > 0 ? `<span class="badge badge-success">${product.stock} disponibles</span>` : '<span class="badge badge-danger">Agotado</span>'}
+              </div>
+              <a href="catalogo.html" class="btn btn-primary btn-small" style="width: 100%;">Ver en Catálogo</a>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error cargando productos destacados:', error);
+      }
+    }
+    
+    loadFeaturedProducts();
+  </script>
+</body>
+</html>

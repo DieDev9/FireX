@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="admin.html" class="logo">🔥 FireX Hub Admin</a>
+      <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Abrir menú">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      <ul class="nav-links">
+        <li><a href="index.html">Volver al Inicio</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="admin-layout">
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+    
+    <aside class="sidebar" id="admin-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <svg class="sidebar-brand-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+            <path d="M2 17l10 5 10-5M2 12l10 5 10-5"></path>
+          </svg>
+          <span class="sidebar-brand-text">FireX Admin</span>
+        </div>
+        <button id="collapse-btn" class="sidebar-collapse-btn" aria-label="Colapsar sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav" role="navigation" aria-label="Navegación principal">
+        <ul role="list">
+          <li>
+            <a href="admin.html#dashboard" 
+               class="sidebar-item" 
+               data-route="dashboard" 
+               role="link"
+               tabindex="0"
+               aria-label="Dashboard - Ver estadísticas generales"
+               aria-describedby="tooltip-dashboard">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span class="sidebar-label">Dashboard</span>
+              <span class="sidebar-tooltip" id="tooltip-dashboard" role="tooltip">Dashboard</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="admin.html#productos" 
+               class="sidebar-item" 
+               data-route="productos"
+               role="link"
+               tabindex="0"
+               aria-label="Productos - Gestionar catálogo de productos"
+               aria-describedby="tooltip-productos">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+              </svg>
+              <span class="sidebar-label">Productos</span>
+              <span class="sidebar-tooltip" id="tooltip-productos" role="tooltip">Productos</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="admin.html#categorias" 
+               class="sidebar-item" 
+               data-route="categorias"
+               role="link"
+               tabindex="0"
+               aria-label="Categorías - Gestionar categorías de productos"
+               aria-describedby="tooltip-categorias">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+              </svg>
+              <span class="sidebar-label">Categorías</span>
+              <span class="sidebar-tooltip" id="tooltip-categorias" role="tooltip">Categorías</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="admin.html#usuarios" 
+               class="sidebar-item" 
+               data-route="usuarios"
+               role="link"
+               tabindex="0"
+               aria-label="Usuarios - Gestionar usuarios del sistema"
+               aria-describedby="tooltip-usuarios">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              <span class="sidebar-label">Usuarios</span>
+              <span class="sidebar-tooltip" id="tooltip-usuarios" role="tooltip">Usuarios</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="admin.html#recargas" 
+               class="sidebar-item" 
+               data-route="recargas"
+               role="link"
+               tabindex="0"
+               aria-label="Recargas - Gestionar solicitudes de recarga"
+               aria-describedby="tooltip-recargas">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+              </svg>
+              <span class="sidebar-label">Recargas</span>
+              <span class="sidebar-badge" id="recargas-badge" aria-label="Solicitudes pendientes">0</span>
+              <span class="sidebar-tooltip" id="tooltip-recargas" role="tooltip">Recargas</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="admin.html#ajustes" 
+               class="sidebar-item" 
+               data-route="ajustes"
+               role="link"
+               tabindex="0"
+               aria-label="Ajustes - Configuración del sistema"
+               aria-describedby="tooltip-ajustes">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path d="M12 1v6m0 6v6m-9-9h6m6 0h6"></path>
+              </svg>
+              <span class="sidebar-label">Ajustes</span>
+              <span class="sidebar-tooltip" id="tooltip-ajustes" role="tooltip">Ajustes</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <ul role="list">
+          <li>
+            <a href="index.html" 
+               class="sidebar-item"
+               role="link"
+               tabindex="0"
+               aria-label="Volver al inicio - Ir a la página principal"
+               aria-describedby="tooltip-home">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+              <span class="sidebar-label">Volver al Inicio</span>
+              <span class="sidebar-tooltip" id="tooltip-home" role="tooltip">Volver al Inicio</span>
+            </a>
+          </li>
+          
+          <li>
+            <a href="#" 
+               onclick="logout(); return false;" 
+               class="sidebar-item"
+               role="link"
+               tabindex="0"
+               aria-label="Cerrar sesión - Salir del panel de administración"
+               aria-describedby="tooltip-logout">
+              <svg class="sidebar-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span class="sidebar-label">Cerrar Sesión</span>
+              <span class="sidebar-tooltip" id="tooltip-logout" role="tooltip">Cerrar Sesión</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="admin-content">
+      <div id="alert-container" aria-live="polite"></div>
+
+      <!-- Dashboard Section -->
+      <section id="dashboard" class="admin-section active">
+        <h1>Dashboard</h1>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-products">0</div>
+            <div class="kpi-label">Productos</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-categories">0</div>
+            <div class="kpi-label">Categorías</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-recargas">0</div>
+            <div class="kpi-label">Recargas</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-value" id="kpi-stock">0</div>
+            <div class="kpi-label">Stock Total</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Productos Section -->
+      <section id="productos" class="admin-section">
+        <div class="card">
+          <h2 class="card-header">Gestión de Productos</h2>
+          
+          <div style="margin-bottom: 2rem;">
+            <h3>Agregar Nuevo Producto</h3>
+            <form id="add-product-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+              <input type="text" id="prod-name" placeholder="Nombre" required>
+              <input type="text" id="prod-desc" placeholder="Descripción" required>
+              <input type="number" id="prod-price" placeholder="Precio" required min="0">
+              <input type="number" id="prod-stock" placeholder="Stock" required min="0">
+              <select id="prod-category" required>
+                <option value="">Categoría...</option>
+              </select>
+              <button type="submit" class="btn btn-success">Agregar Producto</button>
+            </form>
+          </div>
+          
+          <div style="overflow-x: auto;">
+            <table class="table" id="products-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Precio</th>
+                  <th>Stock</th>
+                  <th>Categoría</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Categorías Section -->
+      <section id="categorias" class="admin-section">
+        <div class="card">
+          <h2 class="card-header">Gestión de Categorías</h2>
+          
+          <div style="margin-bottom: 2rem;">
+            <h3>Agregar Nueva Categoría</h3>
+            <form id="add-category-form" style="display: flex; gap: 1rem; margin-top: 1rem;">
+              <input type="text" id="cat-name" placeholder="Nombre de la categoría" required style="flex: 1;">
+              <button type="submit" class="btn btn-success">Agregar Categoría</button>
+            </form>
+          </div>
+          
+          <div style="overflow-x: auto;">
+            <table class="table" id="categories-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Usuarios Section -->
+      <section id="usuarios" class="admin-section">
+        <div class="card">
+          <h2 class="card-header">Gestión de Usuarios</h2>
+          
+          <div class="toolbar">
+            <input type="text" id="search-user" placeholder="Buscar por nombre o email..." style="flex: 1; min-width: 250px;">
+            <select id="filter-role" style="min-width: 150px;">
+              <option value="">Todos los roles</option>
+              <option value="ADMIN">ADMIN</option>
+              <option value="USER">USER</option>
+            </select>
+            <button class="btn btn-primary" onclick="openCreateUserModal()">Nuevo usuario</button>
+          </div>
+          
+          <div class="table-wrap">
+            <table class="table" id="users-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Teléfono</th>
+                  <th>Dirección</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          
+          <div class="pagination" id="users-pagination">
+            <button id="users-prev-page" disabled>Anterior</button>
+            <span id="users-page-info">Página 1</span>
+            <button id="users-next-page">Siguiente</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recargas Section -->
+      <section id="recargas" class="admin-section">
+        <div class="card">
+          <h2 class="card-header">Gestión de Recargas</h2>
+          
+          <div id="recargas-alert" style="margin-bottom: 1rem;"></div>
+          
+          <div class="toolbar">
+            <input type="text" id="search-recarga" placeholder="Buscar por correo o ID..." style="flex: 1; min-width: 250px;">
+            <select id="filter-status" style="min-width: 150px;">
+              <option value="">Todos los estados</option>
+              <option value="PENDIENTE">PENDIENTE</option>
+              <option value="RECOGIDO">RECOGIDO</option>
+              <option value="EN_RECARGA">EN_RECARGA</option>
+              <option value="LISTO">LISTO</option>
+              <option value="ENTREGADO">ENTREGADO</option>
+              <option value="FINALIZADO">FINALIZADO</option>
+            </select>
+            <select id="sort-by" style="min-width: 150px;">
+              <option value="createdAt">Fecha creación</option>
+              <option value="updatedAt">Última actualización</option>
+            </select>
+          </div>
+          
+          <div class="table-wrap">
+            <table class="table" id="recargas-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Correo</th>
+                  <th>Tipo</th>
+                  <th>Fecha</th>
+                  <th>Dirección</th>
+                  <th>Teléfono</th>
+                  <th>Estado</th>
+                  <th>Creada</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          
+          <div class="pagination" id="pagination">
+            <button id="prev-page" disabled>Anterior</button>
+            <span id="page-info">Página 1</span>
+            <button id="next-page">Siguiente</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Ajustes Section -->
+      <section id="ajustes" class="admin-section">
+        <div class="card">
+          <h2 class="card-header">Ajustes</h2>
+          <p style="color: var(--gray);">Configuración del sistema (próximamente)</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div id="create-user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+    <div class="card" style="max-width: 600px; margin: 2rem auto; max-height: 80vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Crear Usuario</h2>
+        <button onclick="closeCreateUserModal()" class="btn btn-ghost">✕</button>
+      </div>
+      <form id="create-user-form">
+        <div class="form-group">
+          <label for="create-user-name">Nombre <span style="color: var(--danger);">*</span></label>
+          <input type="text" id="create-user-name" required>
+        </div>
+        <div class="form-group">
+          <label for="create-user-email">Email <span style="color: var(--danger);">*</span></label>
+          <input type="email" id="create-user-email" required>
+        </div>
+        <div class="form-group">
+          <label for="create-user-password">Contraseña <span style="color: var(--danger);">*</span></label>
+          <input type="password" id="create-user-password" required minlength="6">
+          <small style="color: var(--gray);">Mínimo 6 caracteres</small>
+        </div>
+        <div class="form-group">
+          <label for="create-user-phone">Teléfono <span style="color: var(--danger);">*</span></label>
+          <input type="tel" id="create-user-phone" required>
+        </div>
+        <div class="form-group">
+          <label for="create-user-address">Dirección <span style="color: var(--danger);">*</span></label>
+          <textarea id="create-user-address" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="create-user-role">Role <span style="color: var(--danger);">*</span></label>
+          <select id="create-user-role" required>
+            <option value="">Seleccionar role...</option>
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Crear Usuario</button>
+          <button type="button" onclick="closeCreateUserModal()" class="btn btn-secondary" style="flex: 1;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="edit-user-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+    <div class="card" style="max-width: 600px; margin: 2rem auto; max-height: 80vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Editar Usuario</h2>
+        <button onclick="closeEditUserModal()" class="btn btn-ghost">✕</button>
+      </div>
+      <form id="edit-user-form">
+        <input type="hidden" id="edit-user-id">
+        <div class="form-group">
+          <label for="edit-user-name">Nombre <span style="color: var(--danger);">*</span></label>
+          <input type="text" id="edit-user-name" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-user-email">Email</label>
+          <input type="email" id="edit-user-email" readonly disabled style="background: var(--light); cursor: not-allowed;">
+          <small style="color: var(--gray);">El email no se puede modificar</small>
+        </div>
+        <div class="form-group">
+          <label for="edit-user-role">Role</label>
+          <select id="edit-user-role" disabled style="background: var(--light); cursor: not-allowed;">
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
+          </select>
+          <small style="color: var(--gray);">El role no se puede modificar</small>
+        </div>
+        <div class="form-group">
+          <label for="edit-user-phone">Teléfono <span style="color: var(--danger);">*</span></label>
+          <input type="tel" id="edit-user-phone" required>
+        </div>
+        <div class="form-group">
+          <label for="edit-user-address">Dirección <span style="color: var(--danger);">*</span></label>
+          <textarea id="edit-user-address" required></textarea>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cambios</button>
+          <button type="button" onclick="closeEditUserModal()" class="btn btn-secondary" style="flex: 1;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="status-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+    <div class="card" style="max-width: 500px; margin: 2rem auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Cambiar Estado</h2>
+        <button onclick="closeStatusModal()" class="btn btn-ghost">✕</button>
+      </div>
+      <form id="status-form">
+        <input type="hidden" id="status-recarga-id">
+        <input type="hidden" id="current-status">
+        <div class="form-group">
+          <label for="new-status">Nuevo Estado</label>
+          <select id="new-status" required></select>
+        </div>
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="notify-change">
+            <span>Enviar notificación al cliente</span>
+          </label>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+          <button type="submit" class="btn btn-primary" style="flex: 1;">Actualizar Estado</button>
+          <button type="button" onclick="closeStatusModal()" class="btn btn-secondary" style="flex: 1;">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <div id="timeline-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+    <div class="card" style="max-width: 600px; margin: 2rem auto; max-height: 80vh; overflow-y: auto;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 id="timeline-title">Historial</h2>
+        <button onclick="closeTimelineModal()" class="btn btn-ghost">✕</button>
+      </div>
+      <div id="timeline-content"></div>
+    </div>
+  </div>
+
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    adminGuard();
+    
+    const STATUS_ORDER = ['PENDIENTE', 'RECOGIDO', 'EN_RECARGA', 'LISTO', 'ENTREGADO', 'FINALIZADO'];
+    
+    let products = [];
+    let categories = [];
+    let allRecargas = [];
+    let filteredRecargas = [];
+    
+    let allUsers = [];
+    let filteredUsers = [];
+    let usersCurrentPage = 1;
+    const usersItemsPerPage = 10;
+    
+    let currentPage = 1;
+    const itemsPerPage = 10;
+    
+    const sidebar = qs('#admin-sidebar');
+    const collapseBtn = qs('#collapse-btn');
+    const mobileMenuBtn = qs('#mobile-menu-btn');
+    const sidebarOverlay = qs('#sidebar-overlay');
+    
+    const isCollapsed = localStorage.getItem('fx:admin:sidebarCollapsed') === 'true';
+    if (isCollapsed) {
+      sidebar.classList.add('collapsed');
+    }
+    
+    on(collapseBtn, 'click', () => {
+      sidebar.classList.toggle('collapsed');
+      const collapsed = sidebar.classList.contains('collapsed');
+      localStorage.setItem('fx:admin:sidebarCollapsed', collapsed);
+    });
+    
+    on(mobileMenuBtn, 'click', () => {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    });
+    
+    function closeMobileMenu() {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+    
+    on(sidebarOverlay, 'click', closeMobileMenu);
+    
+    on(document, 'keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (sidebar.classList.contains('open')) {
+          closeMobileMenu();
+        }
+        if (qs('#create-user-modal').style.display === 'block') {
+          closeCreateUserModal();
+        }
+        if (qs('#edit-user-modal').style.display === 'block') {
+          closeEditUserModal();
+        }
+      }
+    });
+    
+    function updateActiveSection() {
+      let hash = window.location.hash.slice(1);
+      
+      if (!hash) {
+        hash = localStorage.getItem('fx:admin:lastSection') || 'dashboard';
+        history.replaceState(null, '', `admin.html#${hash}`);
+      } else {
+        localStorage.setItem('fx:admin:lastSection', hash);
+      }
+      
+      qsa('.sidebar-item[data-route]').forEach(link => {
+        if (link.dataset.route === hash) {
+          link.classList.add('active');
+          link.setAttribute('aria-current', 'page');
+        } else {
+          link.classList.remove('active');
+          link.removeAttribute('aria-current');
+        }
+      });
+      
+      qsa('.admin-section').forEach(section => {
+        if (section.id === hash) {
+          section.classList.add('active');
+        } else {
+          section.classList.remove('active');
+        }
+      });
+      
+      if (hash === 'usuarios' && allUsers.length === 0) {
+        loadUsers();
+      }
+      
+      if (window.innerWidth < 1024) {
+        closeMobileMenu();
+      }
+    }
+    
+    on(window, 'hashchange', updateActiveSection);
+    
+    qsa('.sidebar-item[data-route]').forEach(link => {
+      on(link, 'click', (e) => {
+        e.preventDefault();
+        const route = link.dataset.route;
+        localStorage.setItem('fx:admin:lastSection', route);
+        window.location.hash = route;
+      });
+      
+      on(link, 'keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const route = link.dataset.route;
+          localStorage.setItem('fx:admin:lastSection', route);
+          window.location.hash = route;
+        }
+      });
+    });
+    
+    updateActiveSection();
+    
+    async function loadData() {
+      try {
+        products = await api('/productos/list');
+        categories = await api('/categorias/list');
+        allRecargas = listRecargasAll();
+        filteredRecargas = [...allRecargas];
+        
+        updateKPIs();
+        renderProducts();
+        renderCategories();
+        populateCategorySelect();
+        applyFiltersAndRender();
+        updateRecargasBadge();
+      } catch (error) {
+        toast('Error al cargar datos: ' + error.message, 'error');
+      }
+    }
+    
+    async function loadUsers() {
+      try {
+        allUsers = await fetchUsers();
+        filteredUsers = [...allUsers];
+        applyUsersFiltersAndRender();
+      } catch (error) {
+        toast('Error al cargar usuarios: ' + error.message, 'error');
+      }
+    }
+    
+    function applyUsersFiltersAndRender() {
+      const searchTerm = qs('#search-user').value.toLowerCase();
+      const roleFilter = qs('#filter-role').value;
+      
+      filteredUsers = allUsers.filter(u => {
+        const matchesSearch = !searchTerm || 
+          u.name.toLowerCase().includes(searchTerm) || 
+          u.email.toLowerCase().includes(searchTerm);
+        const matchesRole = !roleFilter || u.role === roleFilter;
+        return matchesSearch && matchesRole;
+      });
+      
+      usersCurrentPage = 1;
+      renderUsers();
+    }
+    
+    function renderUsers() {
+      const tbody = qs('#users-table tbody');
+      const loggedUser = getUser();
+      
+      if (filteredUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: #7f8c8d;">No hay usuarios</td></tr>';
+        updateUsersPagination();
+        return;
+      }
+      
+      const start = (usersCurrentPage - 1) * usersItemsPerPage;
+      const end = start + usersItemsPerPage;
+      const pageUsers = filteredUsers.slice(start, end);
+      
+      tbody.innerHTML = pageUsers.map(u => {
+        const isCurrentUser = u.id === loggedUser.id;
+        const deleteDisabled = isCurrentUser ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : '';
+        const deleteTitle = isCurrentUser ? 'No puedes eliminarte a ti mismo' : 'Eliminar usuario';
+        
+        return `
+          <tr>
+            <td><strong>${u.id}</strong></td>
+            <td>${u.name}</td>
+            <td>${u.email}</td>
+            <td><span class="badge badge-${u.role.toLowerCase()}">${u.role}</span></td>
+            <td>${u.phone || 'N/A'}</td>
+            <td>${u.address || 'N/A'}</td>
+            <td>
+              <button class="btn btn-ghost btn-small" onclick="openEditUserModal(${u.id})" title="Editar usuario">✏️ Editar</button>
+              <button class="btn btn-danger btn-small" onclick="deleteUserConfirm(${u.id})" ${deleteDisabled} title="${deleteTitle}">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      
+      updateUsersPagination();
+    }
+    
+    function updateUsersPagination() {
+      const totalPages = Math.ceil(filteredUsers.length / usersItemsPerPage);
+      qs('#users-page-info').textContent = `Página ${usersCurrentPage} de ${totalPages || 1}`;
+      qs('#users-prev-page').disabled = usersCurrentPage === 1;
+      qs('#users-next-page').disabled = usersCurrentPage >= totalPages;
+    }
+    
+    on(qs('#users-prev-page'), 'click', () => {
+      if (usersCurrentPage > 1) {
+        usersCurrentPage--;
+        renderUsers();
+      }
+    });
+    
+    on(qs('#users-next-page'), 'click', () => {
+      const totalPages = Math.ceil(filteredUsers.length / usersItemsPerPage);
+      if (usersCurrentPage < totalPages) {
+        usersCurrentPage++;
+        renderUsers();
+      }
+    });
+    
+    on(qs('#search-user'), 'input', applyUsersFiltersAndRender);
+    on(qs('#filter-role'), 'change', applyUsersFiltersAndRender);
+    
+    window.openCreateUserModal = function() {
+      qs('#create-user-form').reset();
+      qs('#create-user-modal').style.display = 'block';
+    };
+    
+    window.closeCreateUserModal = function() {
+      qs('#create-user-modal').style.display = 'none';
+    };
+    
+    on(qs('#create-user-form'), 'submit', async (e) => {
+      e.preventDefault();
+      
+      const password = qs('#create-user-password').value;
+      if (password.length < 6) {
+        toast('La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+      }
+      
+      const userData = {
+        name: qs('#create-user-name').value.trim(),
+        email: qs('#create-user-email').value.trim(),
+        password: password,
+        phone: qs('#create-user-phone').value.trim(),
+        address: qs('#create-user-address').value.trim(),
+        role: qs('#create-user-role').value
+      };
+      
+      try {
+        await createUser(userData);
+        toast('Usuario creado exitosamente', 'success');
+        closeCreateUserModal();
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al crear usuario: ' + error.message, 'error');
+      }
+    });
+    
+    window.openEditUserModal = async function(userId) {
+      try {
+        const user = allUsers.find(u => u.id === userId);
+        if (!user) {
+          toast('Usuario no encontrado', 'error');
+          return;
+        }
+        
+        qs('#edit-user-id').value = user.id;
+        qs('#edit-user-name').value = user.name;
+        qs('#edit-user-email').value = user.email;
+        qs('#edit-user-role').value = user.role;
+        qs('#edit-user-phone').value = user.phone || '';
+        qs('#edit-user-address').value = user.address || '';
+        
+        qs('#edit-user-modal').style.display = 'block';
+      } catch (error) {
+        toast('Error al cargar usuario: ' + error.message, 'error');
+      }
+    };
+    
+    window.closeEditUserModal = function() {
+      qs('#edit-user-modal').style.display = 'none';
+    };
+    
+    on(qs('#edit-user-form'), 'submit', async (e) => {
+      e.preventDefault();
+      
+      const userId = qs('#edit-user-id').value;
+      const userData = {
+        name: qs('#edit-user-name').value.trim(),
+        phone: qs('#edit-user-phone').value.trim(),
+        address: qs('#edit-user-address').value.trim()
+      };
+      
+      try {
+        await updateUserBasic(userId, userData);
+        toast('Usuario actualizado exitosamente', 'success');
+        closeEditUserModal();
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al actualizar usuario: ' + error.message, 'error');
+      }
+    });
+    
+    window.deleteUserConfirm = async function(userId) {
+      const loggedUser = getUser();
+      if (userId === loggedUser.id) {
+        toast('No puedes eliminarte a ti mismo', 'error');
+        return;
+      }
+      
+      if (!confirmDialog('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return;
+      
+      try {
+        await deleteUser(userId);
+        toast('Usuario eliminado exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al eliminar usuario: ' + error.message, 'error');
+      }
+    };
+    
+    on(qs('#create-user-modal'), 'click', (e) => {
+      if (e.target.id === 'create-user-modal') closeCreateUserModal();
+    });
+    
+    on(qs('#edit-user-modal'), 'click', (e) => {
+      if (e.target.id === 'edit-user-modal') closeEditUserModal();
+    });
+    
+    function updateRecargasBadge() {
+      const pendingCount = allRecargas.filter(r => r.status === 'PENDIENTE').length;
+      const badge = qs('#recargas-badge');
+      if (badge) {
+        badge.textContent = pendingCount;
+        badge.style.display = pendingCount > 0 ? 'inline-block' : 'none';
+      }
+    }
+    
+    function updateKPIs() {
+      qs('#kpi-products').textContent = products.length;
+      qs('#kpi-categories').textContent = categories.length;
+      qs('#kpi-recargas').textContent = allRecargas.length;
+      const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
+      qs('#kpi-stock').textContent = totalStock;
+    }
+    
+    function renderProducts() {
+      const tbody = qs('#products-table tbody');
+      tbody.innerHTML = products.map(p => {
+        const categoryName = categories.find(c => c.id === p.categoryId)?.name || 'N/A';
+        return `
+          <tr>
+            <td>${p.id}</td>
+            <td><strong>${p.name}</strong></td>
+            <td>${formatCOP(p.price)}</td>
+            <td>${p.stock}</td>
+            <td>${categoryName}</td>
+            <td>
+              <button class="btn btn-danger btn-small" onclick="deleteProduct(${p.id})">🗑️ Eliminar</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+    
+    function renderCategories() {
+      const tbody = qs('#categories-table tbody');
+      tbody.innerHTML = categories.map(c => `
+        <tr>
+          <td>${c.id}</td>
+          <td><strong>${c.name}</strong></td>
+          <td>
+            <button class="btn btn-danger btn-small" onclick="deleteCategory(${c.id})">🗑️ Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+    
+    function populateCategorySelect() {
+      const select = qs('#prod-category');
+      select.innerHTML = '<option value="">Categoría...</option>' + 
+        categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    }
+    
+    function applyFiltersAndRender() {
+      const searchTerm = qs('#search-recarga').value.toLowerCase();
+      const statusFilter = qs('#filter-status').value;
+      const sortBy = qs('#sort-by').value;
+      
+      filteredRecargas = allRecargas.filter(r => {
+        const matchesSearch = !searchTerm || 
+          r.id.toLowerCase().includes(searchTerm) || 
+          r.userEmail.toLowerCase().includes(searchTerm);
+        const matchesStatus = !statusFilter || r.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+      
+      filteredRecargas.sort((a, b) => {
+        return new Date(b[sortBy]) - new Date(a[sortBy]);
+      });
+      
+      currentPage = 1;
+      renderRecargas();
+    }
+    
+    function renderRecargas() {
+      const tbody = qs('#recargas-table tbody');
+      
+      if (filteredRecargas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem; color: #7f8c8d;">No hay solicitudes de recarga</td></tr>';
+        updatePagination();
+        return;
+      }
+      
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = start + itemsPerPage;
+      const pageRecargas = filteredRecargas.slice(start, end);
+      
+      const statusColors = {
+        'PENDIENTE': 'badge-warning',
+        'RECOGIDO': 'badge-info',
+        'EN_RECARGA': 'badge-primary',
+        'LISTO': 'badge-success',
+        'ENTREGADO': 'badge-success',
+        'FINALIZADO': 'badge-secondary'
+      };
+      
+      tbody.innerHTML = pageRecargas.map(r => `
+        <tr>
+          <td><strong>${r.id}</strong></td>
+          <td>${r.userEmail}</td>
+          <td>${r.tipo}</td>
+          <td>${r.fecha}</td>
+          <td>${r.direccion}</td>
+          <td>${r.telefono}</td>
+          <td><span class="badge ${statusColors[r.status]}">${r.status}</span></td>
+          <td>${new Date(r.createdAt).toLocaleDateString('es-CO')}</td>
+          <td>
+            <button class="btn btn-primary btn-small" onclick="openStatusModal('${r.id}', '${r.status}')">Cambiar Estado</button>
+            <button class="btn btn-ghost btn-small" onclick="showTimeline('${r.id}')">Ver Historial</button>
+            <button class="btn btn-danger btn-small" onclick="deleteRecargaAdmin('${r.id}')">🗑️</button>
+          </td>
+        </tr>
+      `).join('');
+      
+      updatePagination();
+    }
+    
+    function updatePagination() {
+      const totalPages = Math.ceil(filteredRecargas.length / itemsPerPage);
+      qs('#page-info').textContent = `Página ${currentPage} de ${totalPages || 1}`;
+      qs('#prev-page').disabled = currentPage === 1;
+      qs('#next-page').disabled = currentPage >= totalPages;
+    }
+    
+    on(qs('#prev-page'), 'click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        renderRecargas();
+      }
+    });
+    
+    on(qs('#next-page'), 'click', () => {
+      const totalPages = Math.ceil(filteredRecargas.length / itemsPerPage);
+      if (currentPage < totalPages) {
+        currentPage++;
+        renderRecargas();
+      }
+    });
+    
+    on(qs('#search-recarga'), 'input', applyFiltersAndRender);
+    on(qs('#filter-status'), 'change', applyFiltersAndRender);
+    on(qs('#sort-by'), 'change', applyFiltersAndRender);
+    
+    on(qs('#add-product-form'), 'submit', async (e) => {
+      e.preventDefault();
+      
+      const productData = {
+        name: qs('#prod-name').value.trim(),
+        description: qs('#prod-desc').value.trim(),
+        price: parseFloat(qs('#prod-price').value),
+        stock: parseInt(qs('#prod-stock').value),
+        categoryId: parseInt(qs('#prod-category').value)
+      };
+      
+      try {
+        await api('/productos/', {
+          method: 'POST',
+          body: JSON.stringify(productData)
+        });
+        
+        toast('Producto agregado exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al agregar producto: ' + error.message, 'error');
+      }
+    });
+    
+    window.deleteProduct = async function(id) {
+      if (!confirmDialog('¿Eliminar este producto?')) return;
+      
+      try {
+        await api(`/productos/${id}`, { method: 'DELETE' });
+        toast('Producto eliminado exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al eliminar producto: ' + error.message, 'error');
+      }
+    };
+    
+    on(qs('#add-category-form'), 'submit', async (e) => {
+      e.preventDefault();
+      
+      const categoryData = {
+        name: qs('#cat-name').value.trim()
+      };
+      
+      try {
+        await api('/categorias/', {
+          method: 'POST',
+          body: JSON.stringify(categoryData)
+        });
+        
+        toast('Categoría agregada exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al agregar categoría: ' + error.message, 'error');
+      }
+    });
+    
+    window.deleteCategory = async function(id) {
+      if (!confirmDialog('¿Eliminar esta categoría?')) return;
+      
+      try {
+        await api(`/categorias/${id}`, { method: 'DELETE' });
+        toast('Categoría eliminada exitosamente', 'success');
+        setTimeout(() => location.reload(), 1000);
+      } catch (error) {
+        toast('Error al eliminar categoría: ' + error.message, 'error');
+      }
+    };
+    
+    window.openStatusModal = function(id, currentStatus) {
+      qs('#status-recarga-id').value = id;
+      qs('#current-status').value = currentStatus;
+      
+      const select = qs('#new-status');
+      const currentIndex = STATUS_ORDER.indexOf(currentStatus);
+      
+      select.innerHTML = STATUS_ORDER.map((status, index) => {
+        const disabled = index < currentIndex ? 'disabled' : '';
+        const selected = status === currentStatus ? 'selected' : '';
+        return `<option value="${status}" ${disabled} ${selected}>${status}</option>`;
+      }).join('');
+      
+      qs('#status-modal').style.display = 'block';
+    };
+    
+    window.closeStatusModal = function() {
+      qs('#status-modal').style.display = 'none';
+    };
+    
+    on(qs('#status-form'), 'submit', async (e) => {
+      e.preventDefault();
+      
+      const id = qs('#status-recarga-id').value;
+      const currentStatus = qs('#current-status').value;
+      const newStatus = qs('#new-status').value;
+      const shouldNotify = qs('#notify-change').checked;
+      const adminEmail = getUser().email;
+      
+      const currentIndex = STATUS_ORDER.indexOf(currentStatus);
+      const newIndex = STATUS_ORDER.indexOf(newStatus);
+      
+      if (newIndex < currentIndex) {
+        toast('No se puede retroceder el estado de una solicitud', 'error');
+        return;
+      }
+      
+      try {
+        const success = updateRecargaStatus(id, newStatus, adminEmail);
+        
+        if (success) {
+          const recarga = getRecargaById(id);
+          
+          if (shouldNotify && recarga) {
+            await notifyEmail(
+              recarga.userEmail,
+              'Actualización de Solicitud de Recarga',
+              `Su solicitud ${id} ha cambiado a estado: ${newStatus}`
+            );
+            
+            await notifyWhatsApp(
+              recarga.telefono,
+              `FireX Hub: Su solicitud ${id} ahora está en estado: ${newStatus}`
+            );
+          }
+          
+          toast('Estado actualizado exitosamente', 'success');
+          closeStatusModal();
+          allRecargas = listRecargasAll();
+          applyFiltersAndRender();
+        } else {
+          toast('Error al actualizar estado', 'error');
+        }
+      } catch (error) {
+        toast('Error: ' + error.message, 'error');
+      }
+    });
+    
+    window.showTimeline = function(id) {
+      const recarga = getRecargaById(id);
+      if (!recarga) return;
+      
+      const statusColors = {
+        'PENDIENTE': 'badge-warning',
+        'RECOGIDO': 'badge-info',
+        'EN_RECARGA': 'badge-primary',
+        'LISTO': 'badge-success',
+        'ENTREGADO': 'badge-success',
+        'FINALIZADO': 'badge-secondary'
+      };
+      
+      const timelineContent = qs('#timeline-content');
+      timelineContent.innerHTML = `
+        <div style="margin-bottom: 1.5rem;">
+          <p><strong>Solicitud:</strong> ${recarga.id}</p>
+          <p><strong>Cliente:</strong> ${recarga.userEmail}</p>
+        </div>
+        <h3>Historial de Estados</h3>
+        <div style="margin-top: 1rem;">
+          ${recarga.timeline.map((entry, index) => `
+            <div style="display: flex; gap: 1rem; margin-bottom: 1rem; padding-bottom: 1rem; ${index < recarga.timeline.length - 1 ? 'border-bottom: 1px solid #ecf0f1;' : ''}">
+              <div style="flex-shrink: 0;">
+                <div style="width: 12px; height: 12px; border-radius: 50%; background: #e74c3c; margin-top: 0.25rem;"></div>
+              </div>
+              <div style="flex: 1;">
+                <div><span class="badge ${statusColors[entry.status]}">${entry.status}</span></div>
+                <div style="font-size: 0.875rem; color: #7f8c8d; margin-top: 0.25rem;">
+                  ${new Date(entry.ts).toLocaleString('es-CO')}
+                </div>
+                <div style="font-size: 0.875rem; color: #95a5a6;">
+                  Por: ${entry.by}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      
+      qs('#timeline-title').textContent = `Historial - ${recarga.id}`;
+      qs('#timeline-modal').style.display = 'block';
+    };
+    
+    window.closeTimelineModal = function() {
+      qs('#timeline-modal').style.display = 'none';
+    };
+    
+    window.deleteRecargaAdmin = function(id) {
+      if (!confirmDialog(`¿Eliminar la solicitud ${id}? Esta acción no se puede deshacer.`)) return;
+      
+      try {
+        deleteRecarga(id);
+        toast('Solicitud eliminada exitosamente', 'success');
+        allRecargas = listRecargasAll();
+        applyFiltersAndRender();
+        updateKPIs();
+      } catch (error) {
+        toast('Error al eliminar solicitud: ' + error.message, 'error');
+      }
+    };
+    
+    on(qs('#status-modal'), 'click', (e) => {
+      if (e.target.id === 'status-modal') closeStatusModal();
+    });
+    
+    on(qs('#timeline-modal'), 'click', (e) => {
+      if (e.target.id === 'timeline-modal') closeTimelineModal();
+    });
+    
+    loadData();
+  </script>
+</body>
+</html>

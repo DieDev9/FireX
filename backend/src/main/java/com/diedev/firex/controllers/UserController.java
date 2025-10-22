@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/users")
@@ -34,13 +36,13 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    // Edpoint para actualizar el perfil del usuario
+    // Actualizar perfil (FIX): aplica cambios y guarda usando el servicio
     @PutMapping("/perfil/{id}")
     public ResponseEntity<AppUser> actualizarPerfil(@PathVariable Long id, @RequestBody AppUser user) {
-        AppUser updateProfile = userService.obtenerUsuariosById(id);
+        AppUser updateProfile = userService.actualizarUsuario(user, id);
         return ResponseEntity.ok(updateProfile);
-
     }
+
     @PutMapping("/update/{id}")
     public ResponseEntity<AppUser> actualizarUser(@PathVariable Long id, @RequestBody AppUser user){
         AppUser updateUser = userService.actualizarUsuario(user, id);
@@ -51,5 +53,32 @@ public class UserController {
     public ResponseEntity<Void> eliminarUser(@PathVariable long id){
         userService.eliminarUsuario(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> credentials) {
+        String email = credentials.get("email");
+        String password = credentials.get("password");
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            AppUser user = userService.login(email, password);
+
+            if (user != null) {
+                response.put("success", true);
+                response.put("message", "Login exitoso");
+                response.put("user", user);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Email o contraseña incorrectos");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            }
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error en el servidor");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 }

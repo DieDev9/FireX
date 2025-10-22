@@ -1,6 +1,5 @@
 package com.diedev.firex.controllers;
 
-
 import com.diedev.firex.models.Producto;
 import com.diedev.firex.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,11 +35,27 @@ public class ProductoController {
         return new ResponseEntity<>(obj, HttpStatus.OK);
     }
 
-    // Actualizar un producto
+    // Actualizar un producto (FIX)
     @PutMapping("/")
     public ResponseEntity<Producto> editar(@RequestBody Producto producto) {
-        Producto obj = productoService.buscarProducto(producto.getId());
-        return new ResponseEntity<>(obj, HttpStatus.OK);
+        if (producto.getId() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        Producto actual = productoService.buscarProducto(producto.getId());
+        if (actual == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Campos a actualizar
+        actual.setName(producto.getName());
+        actual.setDescription(producto.getDescription());
+        actual.setPrice(producto.getPrice());
+        actual.setStock(producto.getStock());
+        actual.setCategory(producto.getCategory());
+
+        Producto guardado = productoService.nuevoProducto(actual); // save
+        return ResponseEntity.ok(guardado);
     }
 
     // Eliminar un producto

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">🔥 FireX Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="recarga.html">Recarga</a></li>
+        <li><a href="carrito.html">Carrito (<span id="cart-count">0</span>)</a></li>
+        <li id="admin-link" style="display: none;"><a href="admin.html">Admin</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1>Mi Carrito de Compras</h1>
+    
+    <div id="alert-container"></div>
+    
+    <div id="cart-content">
+      <!-- Contenido del carrito se cargará aquí -->
+    </div>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    
+    // Mostrar enlace de admin si es admin
+    if (isAdmin()) {
+      qs('#admin-link').style.display = 'block';
+    }
+    
+    function renderCart() {
+      const cart = getCart();
+      const container = qs('#cart-content');
+      const cartCount = qs('#cart-count');
+      
+      cartCount.textContent = getCartCount();
+      
+      if (cart.length === 0) {
+        container.innerHTML = `
+          <div class="card" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">🛒</div>
+            <h2>Tu carrito está vacío</h2>
+            <p style="color: #7f8c8d; margin-bottom: 2rem;">Agrega productos desde nuestro catálogo</p>
+            <a href="catalogo.html" class="btn btn-primary">Ir al Catálogo</a>
+          </div>
+        `;
+        return;
+      }
+      
+      const total = getCartTotal();
+      
+      container.innerHTML = `
+        <div class="card">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cart.map(item => `
+                <tr>
+                  <td><strong>${item.name}</strong></td>
+                  <td>${formatCOP(item.price)}</td>
+                  <td>
+                    <button class="btn btn-small" onclick="changeQty(${item.id}, ${item.qty - 1})">−</button>
+                    <span style="margin: 0 1rem;">${item.qty}</span>
+                    <button class="btn btn-small" onclick="changeQty(${item.id}, ${item.qty + 1})">+</button>
+                  </td>
+                  <td><strong>${formatCOP(item.price * item.qty)}</strong></td>
+                  <td>
+                    <button class="btn btn-danger btn-small" onclick="removeItem(${item.id})">🗑️ Eliminar</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                <td colspan="2"><strong style="font-size: 1.25rem; color: var(--primary);">${formatCOP(total)}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+          
+          <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem;">
+            <button class="btn btn-danger" onclick="emptyCart()">Vaciar Carrito</button>
+            <button class="btn btn-success" onclick="checkout()">Finalizar Compra</button>
+          </div>
+        </div>
+      `;
+    }
+    
+    window.changeQty = function(productId, newQty) {
+      if (newQty < 1) return;
+      updateCartQty(productId, newQty);
+      location.reload();
+    };
+    
+    window.removeItem = function(productId) {
+      if (confirm('¿Eliminar este producto del carrito?')) {
+        removeFromCart(productId);
+        location.reload();
+      }
+    };
+    
+    window.emptyCart = function() {
+      if (confirm('¿Vaciar todo el carrito?')) {
+        clearCart();
+        location.reload();
+      }
+    };
+    
+    window.checkout = function() {
+      const total = getCartTotal();
+      alert(`¡Compra simulada!\n\nTotal: ${formatCOP(total)}\n\nGracias por tu compra en FireX Hub.`);
+      clearCart();
+      location.href = 'index.html';
+    };
+    
+    renderCart();
+  </script>
+</body>
+</html>

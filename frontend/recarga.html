@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solicitar Recarga - FireX Hub</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html" class="logo">🔥 FireX Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Inicio</a></li>
+        <li><a href="catalogo.html">Catálogo</a></li>
+        <li><a href="recarga.html">Recarga</a></li>
+        <li><a href="solicitudes.html">Mis Solicitudes</a></li>
+        <li><a href="carrito.html">Carrito (<span id="cart-count">0</span>)</a></li>
+        <li id="admin-link" style="display: none;"><a href="admin.html">Admin</a></li>
+        <li><a href="#" onclick="logout(); return false;">Cerrar Sesión</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <div class="card" style="max-width: 800px; margin: 2rem auto;">
+      <h1>Solicitar Recarga de Extintor</h1>
+      <p style="color: #7f8c8d; margin-bottom: 2rem;">Complete el formulario para solicitar el servicio de recarga de su extintor</p>
+      
+      <form id="recarga-form">
+        <!-- Added mandatory email field -->
+        <div class="form-group">
+          <label for="correo">Correo Electrónico *</label>
+          <input type="email" id="correo" name="correo" required placeholder="ejemplo@correo.com">
+        </div>
+        
+        <div class="form-group">
+          <label for="tipo">Tipo de Extintor *</label>
+          <select id="tipo" name="tipo" required>
+            <option value="">Seleccione...</option>
+            <option value="ABC">ABC - Polvo Químico Seco</option>
+            <option value="CO2">CO2 - Dióxido de Carbono</option>
+            <option value="H2O">H2O - Agua</option>
+            <option value="K">Clase K - Cocina</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="estado">Estado del Extintor *</label>
+          <select id="estado" name="estado" required>
+            <option value="">Seleccione...</option>
+            <option value="Operativo">Operativo</option>
+            <option value="Descargado">Descargado</option>
+            <option value="Vencido">Vencido</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="fecha">Fecha Preferida *</label>
+          <input type="date" id="fecha" name="fecha" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="franja">Franja Horaria *</label>
+          <select id="franja" name="franja" required>
+            <option value="">Seleccione...</option>
+            <option value="Mañana">Mañana (8:00 AM - 12:00 PM)</option>
+            <option value="Tarde">Tarde (12:00 PM - 5:00 PM)</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="direccion">Dirección de Servicio *</label>
+          <input type="text" id="direccion" name="direccion" required placeholder="Calle 123 #45-67">
+        </div>
+        
+        <div class="form-group">
+          <label for="telefono">Teléfono de Contacto *</label>
+          <input type="tel" id="telefono" name="telefono" required placeholder="3001234567">
+        </div>
+        
+        <div class="form-group">
+          <label for="observaciones">Observaciones</label>
+          <textarea id="observaciones" name="observaciones" placeholder="Información adicional sobre el servicio..."></textarea>
+        </div>
+        
+        <!-- Added notification checkbox -->
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            <input type="checkbox" id="notify" name="notify">
+            <span>Enviar notificación por email/WhatsApp</span>
+          </label>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Enviar Solicitud</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="js/common.js"></script>
+  <script>
+    authGuard();
+    
+    // Actualizar contador del carrito
+    qs('#cart-count').textContent = getCartCount();
+    
+    // Mostrar enlace de admin si es admin
+    if (isAdmin()) {
+      qs('#admin-link').style.display = 'block';
+    }
+    
+    const user = getUser();
+    if (user && user.email) {
+      qs('#correo').value = user.email;
+    }
+    
+    // Establecer fecha mínima (hoy)
+    const today = new Date().toISOString().split('T')[0];
+    qs('#fecha').setAttribute('min', today);
+    
+    const form = qs('#recarga-form');
+    
+    on(form, 'submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        userEmail: qs('#correo').value.trim(),
+        userId: user ? user.id : null,
+        tipo: qs('#tipo').value,
+        estadoExtintor: qs('#estado').value,
+        fecha: qs('#fecha').value,
+        franja: qs('#franja').value,
+        direccion: qs('#direccion').value.trim(),
+        telefono: qs('#telefono').value.trim(),
+        observaciones: qs('#observaciones').value.trim()
+      };
+      
+      const shouldNotify = qs('#notify').checked;
+      
+      try {
+        const recargaId = createRecarga(formData);
+        
+        if (shouldNotify) {
+          await notifyEmail(
+            formData.userEmail,
+            'Solicitud de Recarga Creada',
+            `Su solicitud ${recargaId} ha sido creada exitosamente. Nos pondremos en contacto pronto.`
+          );
+          
+          await notifyWhatsApp(
+            formData.telefono,
+            `FireX Hub: Su solicitud de recarga ${recargaId} ha sido creada. Nos contactaremos pronto.`
+          );
+        }
+        
+        alert(`¡Solicitud de recarga creada exitosamente!\n\nID: ${recargaId}\n\nNos pondremos en contacto contigo pronto.`);
+        location.href = `solicitudes.html?created=${recargaId}`;
+      } catch (error) {
+        alert('Error al crear la solicitud: ' + error.message);
+      }
+    });
+  </script>
+</body>
+</html>

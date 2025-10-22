@@ -41,6 +41,19 @@ public class UserService {
         return userRepository.save(existingUser);
     }
 
+
+    public AppUser login(String email, String password) {
+        Optional<AppUser> userOpt = userRepository.findByEmail(email);
+
+        if (userOpt.isPresent()) {
+            AppUser user = userOpt.get();
+            if (user.getPassword().equals(password)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
     public void eliminarUsuario(Long id){
         userRepository.deleteById(id);
     }
