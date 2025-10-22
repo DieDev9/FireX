@@ -188,7 +188,7 @@ server.port=8066
 ```
 
 ### Diagrama de la base de datos
-![Diagrama de base de datos](./img/tienda_db.png)
+![Diagrama de base de datos](./images/tienda_db.png)
 
 
 ---
@@ -211,6 +211,30 @@ async function listarProductos() {
   return res.json();
 }
 ```
+## Galería del Proyecto (Evidencias Frontend)
+
+A continuación se muestran imágenes representativas del funcionamiento del sistema FireX Hub.
+
+### Página de Inicio
+![Inicio](./images/inicio.png)
+
+### Login de Usuario
+![Login](./images/login.png)
+
+### Catálogo de Productos
+![Catálogo](./images/catalogo.png)
+
+### Panel de Administración
+![Panel Admin](./images/admin.png)
+
+### CRUD de Productos
+![CRUD Productos](./images/crud_productos.png)
+
+### CRUD de Categorías
+![CRUD Categorías](./images/crud_categorias.png)
+
+### CRUD de Usuarios
+![CRUD Categorías](./images/crud_usuarios.png)
 
 ---
 
