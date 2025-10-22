@@ -19,7 +19,7 @@ Permite a clientes explorar el catálogo, solicitar recargas, agendar recolecci�
 
 ---
 
-# Arquitectura y stack (observado en el repositorio)
+# Arquitectura y stack
 - **Backend:** Spring Boot (aplicación Java gestionada por Maven). El proyecto incluye el Maven Wrapper (`mvnw`, `mvnw.cmd`) y el archivo `pom.xml`.  
 - **Frontend:** React (aplicación React cuyo código/build se encuentra en la carpeta `frontend`).  
 - **Base de datos:** MariaDB/MySQL.  
