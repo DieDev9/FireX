@@ -73,24 +73,10 @@ FireX/
 
 ## Diseño de Base de Datos
 
-### Entidades Principales
-
-| Entidad | Campos | Relaciones |
-|:---------|:-------|:-----------|
-| users | id, name, email, password, phone, address, role | — |
-| categories | id, name | 1–N con products |
-| products | id, name, description, price, stock, category_id | N–1 con categories |
-
 ### Diagrama Entidad–Relación (ERD)
 
-```
-USERS (id, name, email, password, phone, address, role)
-
-CATEGORIES (id, name)
-
-PRODUCTS (id, name, description, price, stock, category_id)
-  category_id → CATEGORIES.id
-```
+### Diagrama de la base de datos
+![Diagrama de base de datos](./images/tienda_db.png)
 
 ---
 
@@ -186,10 +172,6 @@ spring.datasource.password=TU_CONTRASEÑA
 spring.jpa.hibernate.ddl-auto=update
 server.port=8066
 ```
-
-### Diagrama de la base de datos
-![Diagrama de base de datos](./images/tienda_db.png)
-
 
 ---
 
