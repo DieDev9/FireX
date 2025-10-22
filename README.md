@@ -48,7 +48,9 @@ Componentes del proyecto:
 ```
 FireX/
 ├── backend/                 # API REST - Spring Boot
+|   ├── config/
 │   ├── controllers/
+│   ├── enums/
 │   ├── models/
 │   ├── repositories/
 │   ├── service/
