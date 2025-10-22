@@ -231,7 +231,7 @@ A continuación se muestran imágenes representativas del funcionamiento del sis
 ![CRUD Productos](./images/crud_productos.png)
 
 ### CRUD de Categorías
-![CRUD Categorías](./images/crud_categorias.png)
+![CRUD Categorías](./images/crud_categoria.png)
 
 ### CRUD de Usuarios
 ![CRUD Categorías](./images/crud_usuarios.png)
