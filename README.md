@@ -74,8 +74,6 @@ FireX/
 ## Diseño de Base de Datos
 
 ### Diagrama Entidad–Relación (ERD)
-
-### Diagrama de la base de datos
 ![Diagrama de base de datos](./images/tienda_db.png)
 
 ---
