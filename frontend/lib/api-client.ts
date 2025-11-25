@@ -175,3 +175,12 @@ export const serviceRequests = {
       method: 'DELETE'
     }),
 };
+
+// ============ CHATBOT API ============
+export const chatbot = {
+  sendMessage: (message: string, history?: Array<{ role: string; content: string }>) =>
+    apiCall<{ message: string; success: boolean; error?: string }>('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, history }),
+    }),
+};

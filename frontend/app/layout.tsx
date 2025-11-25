@@ -8,6 +8,7 @@ import { Header } from '@/components/Header'
 import { AnimatedBackground } from '@/components/AnimatedBackground'
 import QueryProvider from '@/components/providers/QueryProvider'
 import { ThemeProvider } from "@/components/theme-provider"
+import Chatbot from '@/components/Chatbot'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
@@ -40,6 +41,7 @@ export default function RootLayout({
                   {children}
                 </div>
                 <Toaster />
+                <Chatbot />
               </NotificationProvider>
             </AuthProvider>
           </QueryProvider>
