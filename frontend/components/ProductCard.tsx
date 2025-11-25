@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Eye } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { addToCart } from '@/lib/api-client';
+import { cart } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
 
 type ProductCardProps = {
@@ -20,11 +20,10 @@ export function ProductCard({ product }: ProductCardProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isAdding, setIsAdding] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    
+
     if (!user) {
       toast({
         title: 'Debes iniciar sesión',
@@ -36,7 +35,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
     setIsAdding(true);
     try {
-      const response = await addToCart(user.id, product.id, 1);
+      const response = await cart.addItem(user.id, product.id, 1);
       if (response.success) {
         toast({
           title: 'Producto agregado',
@@ -55,15 +54,13 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Link 
-      href={`/productos/${product.id}`} 
+    <Link
+      href={`/productos/${product.id}`}
       className="group block"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       <Card className="overflow-hidden border-2 hover:border-primary/30 transition-all duration-500 hover:shadow-2xl hover:-translate-y-3 h-full flex flex-col relative">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-        
+
         <div className="relative aspect-square bg-muted overflow-hidden">
           <Image
             src={product.imageUrl || `/placeholder.svg?height=400&width=400&query=${encodeURIComponent(product.name)}`}
@@ -71,8 +68,8 @@ export function ProductCard({ product }: ProductCardProps) {
             fill
             className="object-cover group-hover:scale-110 transition-transform duration-700"
           />
-          
-          <div className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-500 flex items-center justify-center ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-all duration-500 flex items-center justify-center opacity-0 group-hover:opacity-100">
             <Button size="sm" variant="secondary" className="gap-2 shadow-xl animate-scale-in">
               <Eye className="h-4 w-4" />
               Ver Detalles
@@ -90,7 +87,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </Badge>
           )}
         </div>
-        
+
         <CardContent className="flex-1 p-6 relative">
           <h3 className="font-bold text-lg line-clamp-2 mb-2 group-hover:text-primary transition-colors duration-300">
             {product.name}
@@ -107,7 +104,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
         </CardContent>
-        
+
         <CardFooter className="p-6 pt-0 relative">
           <Button
             className="w-full bg-gradient-to-r from-primary to-accent hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-lg"

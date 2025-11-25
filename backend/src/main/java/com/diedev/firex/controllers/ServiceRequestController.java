@@ -6,8 +6,6 @@ import com.diedev.firex.dto.response.ApiResponse;
 import com.diedev.firex.dto.response.ServiceRequestResponse;
 import com.diedev.firex.service.interfaces.IServiceRequestService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +18,20 @@ import java.util.Map;
  * Controlador REST para gestión de solicitudes de servicio (recargas)
  * Base URL: /api/service-requests
  */
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @RestController
 @RequestMapping("/api/service-requests")
-@RequiredArgsConstructor
 public class ServiceRequestController {
 
+    private static final Logger log = LoggerFactory.getLogger(ServiceRequestController.class);
+
     private final IServiceRequestService serviceRequestService;
+
+    public ServiceRequestController(IServiceRequestService serviceRequestService) {
+        this.serviceRequestService = serviceRequestService;
+    }
 
     /**
      * POST /api/service-requests
@@ -45,7 +50,7 @@ public class ServiceRequestController {
 
         log.info("POST /api/service-requests - User: {}", userEmail);
 
-        ServiceRequestResponse serviceRequest = serviceRequestService.createRequest(userId, userEmail, request);
+        ServiceRequestResponse serviceRequest = serviceRequestService.createRequest(userId, userEmail, request, request.getEmailHtml());
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Solicitud creada exitosamente", serviceRequest));

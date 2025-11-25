@@ -25,8 +25,11 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
-import * as api from '@/lib/api-client';
+import { categories as categoriesApi } from '@/lib/api-client';
 import type { Category } from '@/types/api';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { categorySchema, type CategoryFormValues } from '@/lib/schemas';
 
 export default function AdminCategoriesPage() {
   const { user } = useAuth();
@@ -36,10 +39,16 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
+
+  const form = useForm<CategoryFormValues>({
+    resolver: zodResolver(categorySchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
   });
+
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = form;
 
   useEffect(() => {
     if (!user) {
@@ -51,7 +60,7 @@ export default function AdminCategoriesPage() {
 
   const loadCategories = async () => {
     try {
-      const response = await api.getCategories();
+      const response = await categoriesApi.getAll();
       if (response.success && response.data) {
         setCategories(response.data);
       }
@@ -66,13 +75,10 @@ export default function AdminCategoriesPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const onSubmit = async (data: CategoryFormValues) => {
     try {
       if (editingCategory) {
-        const response = await api.updateCategory(editingCategory.id, formData);
+        const response = await categoriesApi.update(editingCategory.id, data);
         if (response.success) {
           toast({
             title: 'Éxito',
@@ -80,7 +86,7 @@ export default function AdminCategoriesPage() {
           });
         }
       } else {
-        const response = await api.createCategory(formData);
+        const response = await categoriesApi.create(data);
         if (response.success) {
           toast({
             title: 'Éxito',
@@ -98,8 +104,6 @@ export default function AdminCategoriesPage() {
         description: 'Error al guardar la categoría',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -107,7 +111,7 @@ export default function AdminCategoriesPage() {
     if (!confirm('¿Estás seguro de eliminar esta categoría?')) return;
 
     try {
-      const response = await api.deleteCategory(id);
+      const response = await categoriesApi.delete(id);
       if (response.success) {
         toast({
           title: 'Éxito',
@@ -126,7 +130,7 @@ export default function AdminCategoriesPage() {
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
-    setFormData({
+    reset({
       name: category.name,
       description: category.description ?? "",
     });
@@ -135,7 +139,7 @@ export default function AdminCategoriesPage() {
 
   const resetForm = () => {
     setEditingCategory(null);
-    setFormData({ name: '', description: '' });
+    reset({ name: '', description: '' });
   };
 
   if (loading && categories.length === 0) {
@@ -153,7 +157,10 @@ export default function AdminCategoriesPage() {
           <h1 className="text-3xl font-bold">Gestión de Categorías</h1>
           <p className="text-muted-foreground">Organiza los productos por categorías</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="h-4 w-4 mr-2" />
@@ -166,40 +173,43 @@ export default function AdminCategoriesPage() {
                 {editingCategory ? 'Editar Categoría' : 'Nueva Categoría'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre *</Label>
                 <Input
                   id="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  placeholder="Nombre de la categoría"
+                  {...register('name')}
+                  disabled={isSubmitting}
                 />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="description">Descripción *</Label>
                 <Textarea
                   id="description"
-                  required
                   rows={3}
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  placeholder="Descripción de la categoría"
+                  {...register('description')}
+                  disabled={isSubmitting}
                 />
+                {errors.description && (
+                  <p className="text-sm text-destructive">{errors.description.message}</p>
+                )}
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={loading} className="flex-1">
-                  {loading ? 'Guardando...' : 'Guardar Categoría'}
+                <Button type="submit" disabled={isSubmitting} className="flex-1">
+                  {isSubmitting ? 'Guardando...' : 'Guardar Categoría'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>

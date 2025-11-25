@@ -8,21 +8,27 @@ import com.diedev.firex.models.Categoria;
 import com.diedev.firex.repositories.CategoryRepository;
 import com.diedev.firex.repositories.ProductRepository;
 import com.diedev.firex.service.interfaces.ICategoryService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
-@RequiredArgsConstructor
 public class CategoryServiceImpl implements ICategoryService {
+
+    private static final Logger log = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
+
+    public CategoryServiceImpl(CategoryRepository categoryRepository, ProductRepository productRepository) {
+        this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
+    }
 
     @Override
     public List<CategoryResponse> getAllCategories() {

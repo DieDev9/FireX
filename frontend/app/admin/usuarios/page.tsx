@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Search, Trash2, Mail, Phone } from 'lucide-react';
-import * as api from '@/lib/api-client';
+import { users as usersApi } from '@/lib/api-client';
 import type { UserResponse } from '@/types/api';
 
 export default function AdminUsersPage() {
@@ -38,7 +38,7 @@ export default function AdminUsersPage() {
 
   const loadUsers = async () => {
     try {
-      const response = await api.getAllUsers();
+      const response = await usersApi.getAll();
       if (response.success && response.data) {
         setUsers(response.data);
       }
@@ -57,7 +57,7 @@ export default function AdminUsersPage() {
     if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
 
     try {
-      const response = await api.deleteUser(id);
+      const response = await usersApi.delete(id);
       if (response.success) {
         toast({
           title: 'Éxito',

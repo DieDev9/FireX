@@ -2,6 +2,7 @@ package com.diedev.firex.service.impl;
 
 import com.diedev.firex.dto.request.LoginRequest;
 import com.diedev.firex.dto.request.RegisterRequest;
+import com.diedev.firex.dto.request.UpdateProfileRequest;
 import com.diedev.firex.dto.response.LoginResponse;
 import com.diedev.firex.dto.response.UserResponse;
 import com.diedev.firex.enums.UserRole;
@@ -11,20 +12,31 @@ import com.diedev.firex.exception.UnauthorizedException;
 import com.diedev.firex.models.AppUser;
 import com.diedev.firex.repositories.UserRepository;
 import com.diedev.firex.service.interfaces.IUserService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
-@RequiredArgsConstructor
 public class UserServiceImpl implements IUserService {
 
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
+
     private final UserRepository userRepository;
+    private final com.diedev.firex.security.JwtService jwtService;
+    private final org.springframework.security.authentication.AuthenticationManager authenticationManager;
+
+    public UserServiceImpl(UserRepository userRepository,
+                           com.diedev.firex.security.JwtService jwtService,
+                           org.springframework.security.authentication.AuthenticationManager authenticationManager) {
+        this.userRepository = userRepository;
+        this.jwtService = jwtService;
+        this.authenticationManager = authenticationManager;
+    }
 
     @Override
     public LoginResponse login(LoginRequest request) {
@@ -33,17 +45,21 @@ public class UserServiceImpl implements IUserService {
         AppUser user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Credenciales incorrectas"));
 
-        // En producción usar BCrypt para comparar passwords
-        if (!user.getPassword().equals(request.getPassword())) {
-            log.warn("Contraseña incorrecta para: {}", request.getEmail());
-            throw new UnauthorizedException("Credenciales incorrectas");
-        }
+        authenticationManager.authenticate(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        var jwtToken = jwtService.generateToken(user);
 
         log.info("Login exitoso para: {}", request.getEmail());
 
         return LoginResponse.builder()
                 .success(true)
                 .message("Login exitoso")
+                .token(jwtToken)
                 .user(mapToUserResponse(user))
                 .build();
     }
@@ -53,7 +69,6 @@ public class UserServiceImpl implements IUserService {
     public UserResponse register(RegisterRequest request) {
         log.info("Intentando registrar usuario: {}", request.getEmail());
 
-        // Validar email único
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("El email ya está registrado");
         }
@@ -61,10 +76,10 @@ public class UserServiceImpl implements IUserService {
         AppUser user = new AppUser();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
-        user.setPassword(request.getPassword()); // En producción: BCrypt.encode()
+        user.setPassword(request.getPassword());
         user.setPhone(request.getPhone());
         user.setAddress(request.getAddress());
-        user.setRole(UserRole.USER); // Por defecto USER
+        user.setRole(UserRole.USER);
 
         AppUser savedUser = userRepository.save(user);
         log.info("Usuario registrado exitosamente: {}", savedUser.getEmail());
@@ -84,26 +99,55 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     @Transactional
-    public UserResponse updateProfile(String id, RegisterRequest request) {
+    public UserResponse updateProfile(String id, UpdateProfileRequest request) {
         log.info("Actualizando perfil del usuario: {}", id);
+        log.debug("Datos recibidos - Name: {}, Phone: {}, Address: {}",
+                request.getName(),
+                request.getPhone(),
+                request.getAddress());
 
         AppUser user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario", "id", id));
 
-        // Validar si el email cambió y ya existe
-        if (!user.getEmail().equals(request.getEmail()) &&
-                userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("El email ya está en uso");
+        log.debug("Usuario encontrado: {} ({})", user.getName(), user.getEmail());
+
+        boolean updated = false;
+
+        // Name siempre se actualiza (es requerido)
+        if (!request.getName().equals(user.getName())) {
+            log.info("  Actualizando nombre: {} → {}", user.getName(), request.getName());
+            user.setName(request.getName().trim());
+            updated = true;
         }
 
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setPhone(request.getPhone());
-        user.setAddress(request.getAddress());
+        // Phone es opcional
+        if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+            if (!request.getPhone().equals(user.getPhone())) {
+                log.info("  Actualizando teléfono: {} → {}", user.getPhone(), request.getPhone());
+                user.setPhone(request.getPhone().trim());
+                updated = true;
+            }
+        }
 
-        // Solo actualizar password si se proporciona uno nuevo
+        // Address es opcional
+        if (request.getAddress() != null && !request.getAddress().trim().isEmpty()) {
+            if (!request.getAddress().equals(user.getAddress())) {
+                log.info("  Actualizando dirección: {} → {}", user.getAddress(), request.getAddress());
+                user.setAddress(request.getAddress().trim());
+                updated = true;
+            }
+        }
+
+        // Password es opcional
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            user.setPassword(request.getPassword()); // En producción: BCrypt.encode()
+            log.info("  Actualizando contraseña");
+            user.setPassword(request.getPassword());
+            updated = true;
+        }
+
+        if (!updated) {
+            log.info("  Sin cambios detectados en el perfil");
+            return mapToUserResponse(user);
         }
 
         AppUser updatedUser = userRepository.save(user);
@@ -144,7 +188,6 @@ public class UserServiceImpl implements IUserService {
         }
     }
 
-    // Helper method
     private UserResponse mapToUserResponse(AppUser user) {
         return UserResponse.builder()
                 .id(user.getId())

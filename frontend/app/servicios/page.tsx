@@ -8,7 +8,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { createServiceRequest } from '@/lib/api-client';
+import { serviceRequests } from '@/lib/api-client';
+import { PageHeader } from '@/components/PageHeader';
 import { ValidatedInput } from '@/components/ValidatedInput';
 import { validateServiceRequest, validators } from '@/lib/validators';
 import { AlertCircle } from 'lucide-react';
@@ -16,7 +17,7 @@ import { AlertCircle } from 'lucide-react';
 export default function ServiceRequestPage() {
   const { user } = useAuth();
   const router = useRouter();
-  
+
   const [tipo, setTipo] = useState<"ABC" | "CO2" | "H2O" | "K">("ABC");
   const [estadoExtintor, setEstadoExtintor] = useState<"Operativo" | "Descargado" | "Vencido">("Operativo");
   const [fecha, setFecha] = useState('');
@@ -38,7 +39,7 @@ export default function ServiceRequestPage() {
       return;
     }
 
-    // ✅ VALIDACIÓN COMPLETA ANTES DE ENVIAR
+    // Validación completa antes de enviar
     const requestData = {
       tipo,
       estadoExtintor,
@@ -53,15 +54,15 @@ export default function ServiceRequestPage() {
 
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
-      
+
       // Mostrar el primer error
       const firstError = Object.values(validation.errors)[0];
       toast.error(firstError);
-      
+
       // Scroll al primer campo con error
       const firstErrorField = Object.keys(validation.errors)[0];
       document.getElementById(firstErrorField)?.focus();
-      
+
       return;
     }
 
@@ -70,11 +71,38 @@ export default function ServiceRequestPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await createServiceRequest(user.id, user.email, requestData);
+      // 1. Generar HTML del correo
+      let emailHtml = '';
+      try {
+        const emailRes = await fetch('/api/emails/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            requestId: 'PENDIENTE', // El ID real se genera en el back, esto es placeholder visual
+            tipo: requestData.tipo,
+            fecha: requestData.fecha,
+            franja: requestData.franja,
+            direccion: requestData.direccion
+          })
+        });
+        if (emailRes.ok) {
+          const { html } = await emailRes.json();
+          emailHtml = html;
+        }
+      } catch (err) {
+        console.error("Error generando template de correo:", err);
+        // No bloqueamos el flujo si falla el render del correo
+      }
+
+      // 2. Enviar solicitud al backend con el HTML
+      const response = await serviceRequests.create(user.id, user.email, {
+        ...requestData,
+        emailHtml
+      });
 
       if (response.success && response.data) {
         toast.success(`Solicitud ${response.data.requestId} creada exitosamente`);
-        
+
         // Reset form
         setTipo("ABC");
         setEstadoExtintor("Operativo");
@@ -83,7 +111,7 @@ export default function ServiceRequestPage() {
         setDireccion('');
         setTelefono('');
         setObservaciones('');
-        
+
         // Redirect to my requests
         router.push('/mis-solicitudes');
       }
@@ -96,7 +124,7 @@ export default function ServiceRequestPage() {
 
   // Obtener fecha mínima (hoy)
   const today = new Date().toISOString().split('T')[0];
-  
+
   // Obtener fecha máxima (3 meses)
   const maxDate = new Date();
   maxDate.setMonth(maxDate.getMonth() + 3);
@@ -105,12 +133,10 @@ export default function ServiceRequestPage() {
   return (
     <div className="min-h-screen py-8">
       <div className="container mx-auto px-4 max-w-3xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Servicio de Recarga</h1>
-          <p className="text-muted-foreground">
-            Solicita el servicio de recarga y mantenimiento de extintores
-          </p>
-        </div>
+        <PageHeader
+          title="Servicio de Recarga"
+          description="Solicita el servicio de recarga y mantenimiento de extintores"
+        />
 
         <Card>
           <CardHeader>
@@ -124,7 +150,7 @@ export default function ServiceRequestPage() {
               {/* Información del Extintor */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Información del Extintor</h3>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="tipo">Tipo de Extintor *</Label>
                   <Select value={tipo} onValueChange={(value: "ABC" | "CO2" | "H2O" | "K") => setTipo(value)}>
@@ -170,7 +196,7 @@ export default function ServiceRequestPage() {
               {/* Programación del Servicio */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Programación del Servicio</h3>
-                
+
                 <ValidatedInput
                   id="fecha"
                   label="Fecha Preferida"
@@ -207,7 +233,7 @@ export default function ServiceRequestPage() {
               {/* Información de Contacto */}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold">Información de Contacto</h3>
-                
+
                 <ValidatedInput
                   id="telefono"
                   label="Teléfono"
@@ -248,10 +274,10 @@ export default function ServiceRequestPage() {
                 helperText="Opcional: Detalles adicionales que desees compartir"
               />
 
-              <Button 
-                type="submit" 
-                className="w-full" 
-                size="lg" 
+              <Button
+                type="submit"
+                className="w-full"
+                size="lg"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'Enviando solicitud...' : 'Crear Solicitud'}

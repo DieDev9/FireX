@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductById, addToCart } from '@/lib/api-client';
+import { products as productsApi, cart as cartApi } from '@/lib/api-client';
 import type { Product } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,7 +32,7 @@ function ProductDetailContent() {
 
   const loadProduct = async (id: string) => {
     try {
-      const response = await getProductById(id);
+      const response = await productsApi.getById(id);
       if (response.success && response.data) {
         setProduct(response.data);
       }
@@ -61,7 +61,7 @@ function ProductDetailContent() {
 
     setIsAdding(true);
     try {
-      const response = await addToCart(user.id, product.id, quantity);
+      const response = await cartApi.addItem(user.id, product.id, quantity);
       if (response.success) {
         toast({
           title: 'Producto agregado',
@@ -106,7 +106,7 @@ function ProductDetailContent() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      
+
       <main className="flex-1 py-8">
         <div className="container mx-auto px-4">
           <div className="mb-6">

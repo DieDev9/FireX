@@ -10,8 +10,6 @@ import com.diedev.firex.models.Producto;
 import com.diedev.firex.repositories.CategoryRepository;
 import com.diedev.firex.repositories.ProductRepository;
 import com.diedev.firex.service.interfaces.IProductService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,15 +20,27 @@ import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de productos
- * ✅ ARREGLADO: Eliminadas las consultas N+1 usando cache de categorías
+ * Eliminadas las consultas N+1 usando cache de categorías
  */
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
-@RequiredArgsConstructor
 public class ProductServiceImpl implements IProductService {
+
+    private static final Logger log = LoggerFactory.getLogger(ProductServiceImpl.class);
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final com.diedev.firex.service.interfaces.NotificationService notificationService;
+
+    public ProductServiceImpl(ProductRepository productRepository,
+                              CategoryRepository categoryRepository,
+                              com.diedev.firex.service.interfaces.NotificationService notificationService) {
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.notificationService = notificationService;
+    }
 
     @Override
     @Transactional(readOnly = true)
@@ -39,7 +49,7 @@ public class ProductServiceImpl implements IProductService {
 
         List<Producto> productos = productRepository.findAll();
 
-        // ✅ ARREGLO: Cargar todas las categorías UNA SOLA VEZ
+        // Cargar todas las categorías una sola vez
         Map<String, Categoria> categoriaCache = loadCategoryCache(productos);
 
         return productos.stream()
@@ -85,7 +95,7 @@ public class ProductServiceImpl implements IProductService {
         producto.setCategoryId(request.getCategoryId());
 
         Producto savedProduct = productRepository.save(producto);
-        log.info("✅ Producto creado con ID: {}", savedProduct.getId());
+        log.info("Producto creado con ID: {}", savedProduct.getId());
 
         return mapToProductResponse(savedProduct, categoria);
     }
@@ -125,7 +135,31 @@ public class ProductServiceImpl implements IProductService {
         producto.setCategoryId(request.getCategoryId());
 
         Producto updatedProduct = productRepository.save(producto);
-        log.info("✅ Producto actualizado exitosamente: {}", updatedProduct.getName());
+        log.info("Producto actualizado exitosamente: {}", updatedProduct.getName());
+
+        // NOTIFICACIÓN DE STOCK BAJO
+        if (updatedProduct.getStock() < 10) {
+            try {
+                // TODO: En un sistema real, iterar sobre usuarios ADMIN o enviar a un topic
+                // Por ahora, asumimos un admin hardcoded o lógica futura
+                // notificationService.sendNotification("admin-id", ...);
+                log.info("ALERTA DE STOCK BAJO: {} (Stock: {})", updatedProduct.getName(), updatedProduct.getStock());
+                
+                com.diedev.firex.models.Notification notification = new com.diedev.firex.models.Notification();
+                notification.setTitle("Alerta de Stock Bajo");
+                notification.setMessage("El producto " + updatedProduct.getName() + " tiene pocas unidades (" + updatedProduct.getStock() + ")");
+                notification.setType(com.diedev.firex.enums.NotificationType.LOW_STOCK_ALERT);
+                notification.setPriority(com.diedev.firex.enums.NotificationPriority.HIGH);
+                notification.setActionUrl("/admin/products/" + updatedProduct.getId());
+                
+                // Aquí deberíamos buscar los admins. Como no tengo UserService inyectado ni método para buscar admins,
+                // dejaré esto preparado para cuando se integre.
+                // notificationService.sendNotification("admin_user_id", notification);
+                
+            } catch (Exception e) {
+                log.error("Error procesando alerta de stock: {}", e.getMessage());
+            }
+        }
 
         return mapToProductResponse(updatedProduct, categoria);
     }
@@ -140,7 +174,7 @@ public class ProductServiceImpl implements IProductService {
         }
 
         productRepository.deleteById(id);
-        log.info("✅ Producto eliminado exitosamente: {}", id);
+        log.info("Producto eliminado exitosamente: {}", id);
     }
 
     @Override
@@ -205,7 +239,7 @@ public class ProductServiceImpl implements IProductService {
     // ========== MÉTODOS HELPER MEJORADOS ==========
 
     /**
-     * ✅ NUEVO: Carga todas las categorías necesarias en UNA consulta
+     * Carga todas las categorías necesarias en una consulta
      * Evita el problema N+1 de consultas a la BD
      */
     private Map<String, Categoria> loadCategoryCache(List<Producto> productos) {
@@ -222,7 +256,7 @@ public class ProductServiceImpl implements IProductService {
         Map<String, Categoria> cache = new HashMap<>();
         categorias.forEach(cat -> cache.put(cat.getId(), cat));
 
-        log.debug("✅ Cache de categorías cargado: {} categorías", cache.size());
+        log.debug("Cache de categorías cargado: {} categorías", cache.size());
         return cache;
     }
 

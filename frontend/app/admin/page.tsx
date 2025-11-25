@@ -10,17 +10,33 @@ import { Package, Wrench, Users, TrendingUp, AlertTriangle } from 'lucide-react'
 import { products, users, serviceRequests } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+
 export default function AdminDashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-  
+
   const [stats, setStats] = useState({
     totalProducts: 0,
     lowStock: 0,
     pendingRequests: 0,
     totalUsers: 0,
     loading: true,
+    requestStats: [] as { name: string; value: number }[],
+    lowStockProducts: [] as { name: string; stock: number }[],
   });
 
   useEffect(() => {
@@ -48,7 +64,7 @@ export default function AdminDashboard() {
       const productsRes = await products.getAll();
       const allProducts = productsRes.data || [];
       const totalProducts = allProducts.length;
-      
+
       // Productos con stock bajo (< 10)
       const lowStock = allProducts.filter(p => p.stock > 0 && p.stock < 10).length;
 
@@ -56,9 +72,32 @@ export default function AdminDashboard() {
       const usersRes = await users.getAll();
       const totalUsers = usersRes.data?.length || 0;
 
-      // Cargar solicitudes pendientes
-      const requestsRes = await serviceRequests.getByStatus('PENDIENTE');
-      const pendingRequests = requestsRes.data?.length || 0;
+      // Cargar todas las solicitudes para el gráfico
+      const allRequestsRes = await serviceRequests.getAll();
+      const allRequests = allRequestsRes.data || [];
+
+      const statusCounts = allRequests.reduce((acc, req) => {
+        const status = req.status || 'PENDIENTE';
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      const requestStats = Object.entries(statusCounts).map(([name, value]) => ({
+        name,
+        value,
+      }));
+
+      const pendingRequests = statusCounts['PENDIENTE'] || 0;
+
+      // Top 5 productos con menos stock
+      const lowStockProducts = allProducts
+        .filter(p => p.stock < 10)
+        .sort((a, b) => a.stock - b.stock)
+        .slice(0, 5)
+        .map(p => ({
+          name: p.name.substring(0, 15) + (p.name.length > 15 ? '...' : ''),
+          stock: p.stock,
+        }));
 
       setStats({
         totalProducts,
@@ -66,6 +105,8 @@ export default function AdminDashboard() {
         pendingRequests,
         totalUsers,
         loading: false,
+        requestStats,
+        lowStockProducts,
       });
 
       console.log('✅ Estadísticas cargadas:', {
@@ -205,6 +246,55 @@ export default function AdminDashboard() {
               </p>
             </CardContent>
           </Card>
+
+
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Estado de Solicitudes</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats.requestStats}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {stats.requestStats.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={['#0088FE', '#00C49F', '#FFBB28', '#FF8042'][index % 4]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Productos con Menor Stock</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats.lowStockProducts}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="stock" fill="#ff8042" name="Stock" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Admin Cards */}
@@ -260,6 +350,6 @@ export default function AdminDashboard() {
           </Card>
         )}
       </div>
-    </div>
+    </div >
   );
 }

@@ -9,15 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Trash2, Minus, Plus, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getCart, updateCartItem, removeFromCart, clearCart } from '@/lib/api-client';
+import { cart as cartApi } from '@/lib/api-client';
 import type { Cart } from '@/types/api';
 import { useToast } from '@/hooks/use-toast';
 
-function CartContent() {
+export default function CartPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [cart, setCart] = useState<Cart | null>(null);
   const [loading, setLoading] = useState(true);
+  const [updatingItems, setUpdatingItems] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (user) {
@@ -29,13 +30,14 @@ function CartContent() {
 
   const loadCart = async () => {
     if (!user) return;
-    
+
     try {
-      const response = await getCart(user.id);
+      const response = await cartApi.get(user.id);
       if (response.success && response.data) {
         setCart(response.data);
       }
     } catch (error) {
+      console.error('❌ Error al cargar carrito:', error);
       toast({
         title: 'Error',
         description: 'No se pudo cargar el carrito',
@@ -46,23 +48,41 @@ function CartContent() {
     }
   };
 
+  // ✅ ARREGLADO: Función para actualizar cantidad
   const handleUpdateQuantity = async (productId: string, newQuantity: number) => {
     if (!user || newQuantity < 1) return;
 
+    // Evitar actualizaciones concurrentes del mismo item
+    if (updatingItems.has(productId)) {
+      console.log('⏳ Ya se está actualizando este item:', productId);
+      return;
+    }
+
+    setUpdatingItems(prev => new Set(prev).add(productId));
+
     try {
-      const response = await updateCartItem(user.id, productId, newQuantity);
+      console.log('🔄 Actualizando carrito:', { productId, newQuantity });
+
+      const response = await cartApi.updateItem(user.id, productId, newQuantity);
+
       if (response.success && response.data) {
         setCart(response.data);
-        toast({
-          title: 'Carrito actualizado',
-          description: 'La cantidad se actualizó correctamente',
-        });
+        console.log('✅ Carrito actualizado exitosamente');
       }
     } catch (error) {
+      console.error('❌ Error al actualizar carrito:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'No se pudo actualizar el carrito',
         variant: 'destructive',
+      });
+      // Recargar carrito para sincronizar
+      await loadCart();
+    } finally {
+      setUpdatingItems(prev => {
+        const next = new Set(prev);
+        next.delete(productId);
+        return next;
       });
     }
   };
@@ -71,7 +91,7 @@ function CartContent() {
     if (!user) return;
 
     try {
-      const response = await removeFromCart(user.id, productId);
+      const response = await cartApi.removeItem(user.id, productId);
       if (response.success && response.data) {
         setCart(response.data);
         toast({
@@ -89,10 +109,10 @@ function CartContent() {
   };
 
   const handleClearCart = async () => {
-    if (!user) return;
+    if (!user || !confirm('¿Estás seguro de vaciar el carrito?')) return;
 
     try {
-      const response = await clearCart(user.id);
+      const response = await cartApi.clear(user.id);
       if (response.success && response.data) {
         setCart(response.data);
         toast({
@@ -111,121 +131,133 @@ function CartContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <main className="flex-1 flex items-center justify-center">
-          <LoadingSpinner />
-        </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <LoadingSpinner />
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="max-w-md w-full mx-4">
-            <CardContent className="p-8 text-center">
-              <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Inicia sesión</h2>
-              <p className="text-muted-foreground mb-6">
-                Debes iniciar sesión para ver tu carrito de compras
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/login">Iniciar Sesión</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="p-8 text-center">
+            <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">Inicia sesión</h2>
+            <p className="text-muted-foreground mb-6">
+              Debes iniciar sesión para ver tu carrito de compras
+            </p>
+            <Button asChild className="w-full">
+              <Link href="/login">Iniciar Sesión</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!cart || cart.items.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="max-w-md w-full mx-4">
-            <CardContent className="p-8 text-center">
-              <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-bold mb-2">Tu carrito está vacío</h2>
-              <p className="text-muted-foreground mb-6">
-                Agrega productos desde nuestro catálogo
-              </p>
-              <Button asChild className="w-full">
-                <Link href="/productos">Ver Productos</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="p-8 text-center">
+            <ShoppingBag className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">Tu carrito está vacío</h2>
+            <p className="text-muted-foreground mb-6">
+              Agrega productos desde nuestro catálogo
+            </p>
+            <Button asChild className="w-full">
+              <Link href="/productos">Ver Productos</Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      
-      <main className="flex-1 py-8">
-        <div className="container mx-auto px-4">
-          <div className="mb-8 flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">Carrito de Compras</h1>
-              <p className="text-muted-foreground">
-                {cart.totalItems} {cart.totalItems === 1 ? 'producto' : 'productos'}
-              </p>
-            </div>
+    <div className="min-h-screen py-8">
+      <div className="container mx-auto px-4">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Carrito de Compras</h1>
+            <p className="text-muted-foreground">
+              {cart.totalItems} {cart.totalItems === 1 ? 'producto' : 'productos'}
+            </p>
+          </div>
+          {cart.items.length > 0 && (
             <Button variant="outline" onClick={handleClearCart}>
               <Trash2 className="mr-2 h-4 w-4" />
               Vaciar Carrito
             </Button>
-          </div>
+          )}
+        </div>
 
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
-              {cart.items.map((item) => (
-                <Card key={item.productId}>
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Cart Items */}
+          <div className="lg:col-span-2 space-y-4">
+            {cart.items.map((item) => {
+              const isUpdating = updatingItems.has(item.productId);
+
+              return (
+                <Card key={item.productId} className={isUpdating ? 'opacity-60' : ''}>
                   <CardContent className="p-4">
                     <div className="flex gap-4">
                       <div className="relative h-24 w-24 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         <Image
-                          src={`/.jpg?height=96&width=96&query=${encodeURIComponent(item.name)}`}
+                          src="/diverse-products-still-life.png"
                           alt={item.name}
                           fill
                           className="object-cover"
                         />
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
                         <p className="text-primary font-semibold mb-3">
                           ${item.price.toLocaleString()}
                         </p>
-                        
+
                         <div className="flex items-center gap-2">
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => handleUpdateQuantity(item.productId, item.quantity - 1)}
-                            disabled={item.quantity <= 1}
+                            disabled={item.quantity <= 1 || isUpdating}
                           >
                             <Minus className="h-3 w-3" />
                           </Button>
+
                           <Input
                             type="number"
                             min="1"
                             value={item.quantity}
-                            onChange={(e) => handleUpdateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                            onChange={(e) => {
+                              const val = parseInt(e.target.value) || 1;
+                              if (val >= 1) {
+                                handleUpdateQuantity(item.productId, val);
+                              }
+                            }}
                             className="w-16 h-8 text-center"
+                            disabled={isUpdating}
                           />
+
                           <Button
                             variant="outline"
                             size="icon"
                             className="h-8 w-8"
                             onClick={() => handleUpdateQuantity(item.productId, item.quantity + 1)}
+                            disabled={isUpdating}
                           >
                             <Plus className="h-3 w-3" />
                           </Button>
+
+                          {isUpdating && (
+                            <span className="text-sm text-muted-foreground ml-2">
+                              Actualizando...
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -238,6 +270,7 @@ function CartContent() {
                           size="sm"
                           onClick={() => handleRemoveItem(item.productId)}
                           className="text-destructive hover:text-destructive"
+                          disabled={isUpdating}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -245,50 +278,46 @@ function CartContent() {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
+              );
+            })}
+          </div>
 
-            {/* Order Summary */}
-            <div className="lg:col-span-1">
-              <Card className="sticky top-20">
-                <CardHeader>
-                  <CardTitle>Resumen del Pedido</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-semibold">${cart.totalPrice.toLocaleString()}</span>
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-20">
+              <CardHeader>
+                <CardTitle>Resumen del Pedido</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="font-semibold">${cart.totalPrice.toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Envío</span>
+                  <span className="font-semibold">A calcular</span>
+                </div>
+                <div className="border-t border-border pt-4">
+                  <div className="flex justify-between">
+                    <span className="text-lg font-bold">Total</span>
+                    <span className="text-2xl font-bold text-primary">
+                      ${cart.totalPrice.toLocaleString()}
+                    </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Envío</span>
-                    <span className="font-semibold">A calcular</span>
-                  </div>
-                  <div className="border-t border-border pt-4">
-                    <div className="flex justify-between">
-                      <span className="text-lg font-bold">Total</span>
-                      <span className="text-2xl font-bold text-primary">
-                        ${cart.totalPrice.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2">
-                  <Button className="w-full" size="lg">
-                    Continuar con la Compra
-                  </Button>
-                  <Button variant="outline" className="w-full" asChild>
-                    <Link href="/productos">Seguir Comprando</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col gap-2">
+                <Button className="w-full" size="lg">
+                  Continuar con la Compra
+                </Button>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/productos">Seguir Comprando</Link>
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
-}
-
-export default function CartPage() {
-  return <CartContent />;
 }

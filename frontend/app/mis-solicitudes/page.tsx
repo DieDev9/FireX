@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { getMyServiceRequests } from '@/lib/api-client';
+import { serviceRequests } from '@/lib/api-client';
 import type { ServiceRequest } from '@/types/api';
 
 const statusConfig = {
@@ -39,7 +39,7 @@ export default function MyRequestsPage() {
     if (!user) return;
 
     try {
-      const response = await getMyServiceRequests(user.email);
+      const response = await serviceRequests.getMine(user.email);
       if (response.success && response.data) {
         setRequests(response.data);
       }
@@ -125,11 +125,11 @@ export default function MyRequestsPage() {
                   <div className="grid md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <p className="text-sm text-muted-foreground">Tipo de Extintor</p>
-                      <p className="font-medium">{request.extinguisherType}</p>
+                      <p className="font-medium">{request.tipo}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-muted-foreground">Capacidad</p>
-                      <p className="font-medium">{request.capacity}</p>
+                      <p className="text-sm text-muted-foreground">Estado</p>
+                      <p className="font-medium">{request.estadoExtintor}</p>
                     </div>
                   </div>
                   <Button
@@ -165,18 +165,12 @@ export default function MyRequestsPage() {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-muted-foreground">Tipo:</span>
-                    <p className="font-medium">{selectedRequest.extinguisherType}</p>
+                    <p className="font-medium">{selectedRequest.tipo}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Capacidad:</span>
-                    <p className="font-medium">{selectedRequest.capacity}</p>
+                    <span className="text-muted-foreground">Estado:</span>
+                    <p className="font-medium">{selectedRequest.estadoExtintor}</p>
                   </div>
-                  {selectedRequest.serialNumber && (
-                    <div className="col-span-2">
-                      <span className="text-muted-foreground">Nº Serie:</span>
-                      <p className="font-medium">{selectedRequest.serialNumber}</p>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -185,32 +179,30 @@ export default function MyRequestsPage() {
                 <div className="space-y-1 text-sm">
                   <div>
                     <span className="text-muted-foreground">Email:</span>
-                    <p className="font-medium">{selectedRequest.customerEmail}</p>
+                    <p className="font-medium">{selectedRequest.userEmail}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Teléfono:</span>
-                    <p className="font-medium">{selectedRequest.phoneNumber}</p>
+                    <p className="font-medium">{selectedRequest.telefono}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Dirección:</span>
-                    <p className="font-medium">{selectedRequest.address}</p>
+                    <p className="font-medium">{selectedRequest.direccion}</p>
                   </div>
-                  {selectedRequest.preferredDate && (
-                    <div>
-                      <span className="text-muted-foreground">Fecha Preferida:</span>
-                      <p className="font-medium">
-                        {new Date(selectedRequest.preferredDate).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-muted-foreground">Fecha Preferida:</span>
+                    <p className="font-medium">
+                      {new Date(selectedRequest.fecha).toLocaleDateString('es-ES')} - {selectedRequest.franja}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {selectedRequest.additionalNotes && (
+              {selectedRequest.observaciones && (
                 <div>
                   <h3 className="font-semibold mb-2">Notas Adicionales</h3>
                   <p className="text-sm text-muted-foreground">
-                    {selectedRequest.additionalNotes}
+                    {selectedRequest.observaciones}
                   </p>
                 </div>
               )}
@@ -235,7 +227,7 @@ export default function MyRequestsPage() {
                             {new Date(item.timestamp).toLocaleString('es-ES')}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            Por: {item.updatedBy}
+                            Por: {item.by}
                           </p>
                         </div>
                       </div>

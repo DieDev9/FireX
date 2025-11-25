@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, LogOut, Flame, Menu, Shield, Package } from 'lucide-react';
+import { ShoppingCart, User, LogOut, Flame, Menu, Shield, Package, Settings } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,64 +15,57 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { usePathname } from 'next/navigation';
+import { NotificationBell } from '@/components/NotificationBell';
+
+
+const Navigation = ({ pathname, isAdmin }: { pathname: string | null, isAdmin: boolean }) => (
+  <>
+    <Link
+      href="/"
+      className={`text-sm font-medium hover:text-primary transition-colors relative group ${pathname === '/' ? 'text-primary' : ''
+        }`}
+    >
+      Inicio
+      <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${pathname === '/' ? 'w-full' : 'w-0 group-hover:w-full'
+        }`} />
+    </Link>
+    <Link
+      href="/productos"
+      className={`text-sm font-medium hover:text-primary transition-colors relative group ${pathname === '/productos' || pathname?.startsWith('/productos/') ? 'text-primary' : ''
+        }`}
+    >
+      Productos
+      <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${pathname === '/productos' || pathname?.startsWith('/productos/') ? 'w-full' : 'w-0 group-hover:w-full'
+        }`} />
+    </Link>
+    <Link
+      href="/servicios"
+      className={`text-sm font-medium hover:text-primary transition-colors relative group ${pathname === '/servicios' ? 'text-primary' : ''
+        }`}
+    >
+      Servicios
+      <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${pathname === '/servicios' ? 'w-full' : 'w-0 group-hover:w-full'
+        }`} />
+    </Link>
+    {/* Enlace Admin */}
+    {isAdmin && (
+      <Link
+        href="/admin"
+        className={`text-sm font-medium hover:text-primary transition-colors relative group flex items-center gap-2 ${pathname?.startsWith('/admin') ? 'text-primary' : ''
+          }`}
+      >
+        <Shield className="h-4 w-4" />
+        <span>Panel Admin</span>
+        <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${pathname?.startsWith('/admin') ? 'w-full' : 'w-0 group-hover:w-full'
+          }`} />
+      </Link>
+    )}
+  </>
+);
 
 export function Header() {
   const { user, logout, isAdmin } = useAuth();
   const pathname = usePathname();
-
-  // Componente de navegación que se actualiza con el estado de auth
-  const Navigation = () => (
-    <>
-      <Link 
-        href="/" 
-        className={`text-sm font-medium hover:text-primary transition-colors relative group ${
-          pathname === '/' ? 'text-primary' : ''
-        }`}
-      >
-        Inicio
-        <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${
-          pathname === '/' ? 'w-full' : 'w-0 group-hover:w-full'
-        }`} />
-      </Link>
-      <Link 
-        href="/productos" 
-        className={`text-sm font-medium hover:text-primary transition-colors relative group ${
-          pathname === '/productos' || pathname?.startsWith('/productos/') ? 'text-primary' : ''
-        }`}
-      >
-        Productos
-        <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${
-          pathname === '/productos' || pathname?.startsWith('/productos/') ? 'w-full' : 'w-0 group-hover:w-full'
-        }`} />
-      </Link>
-      <Link 
-        href="/servicios" 
-        className={`text-sm font-medium hover:text-primary transition-colors relative group ${
-          pathname === '/servicios' ? 'text-primary' : ''
-        }`}
-      >
-        Servicios
-        <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${
-          pathname === '/servicios' ? 'w-full' : 'w-0 group-hover:w-full'
-        }`} />
-      </Link>
-      {/* ✅ CORREGIDO: Solo mostrar una vez el enlace Admin */}
-      {isAdmin && (
-        <Link 
-          href="/admin" 
-          className={`text-sm font-medium hover:text-primary transition-colors relative group flex items-center gap-2 ${
-            pathname?.startsWith('/admin') ? 'text-primary' : ''
-          }`}
-        >
-          <Shield className="h-4 w-4" />
-          <span>Panel Admin</span>
-          <span className={`absolute -bottom-1 left-0 h-0.5 bg-primary transition-all ${
-            pathname?.startsWith('/admin') ? 'w-full' : 'w-0 group-hover:w-full'
-          }`} />
-        </Link>
-      )}
-    </>
-  );
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
@@ -87,7 +80,7 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <Navigation />
+          <Navigation pathname={pathname} isAdmin={isAdmin} />
         </nav>
 
         {/* Mobile Menu */}
@@ -99,13 +92,16 @@ export function Header() {
           </SheetTrigger>
           <SheetContent side="left">
             <div className="flex flex-col gap-6 mt-8">
-              <Navigation />
+              <Navigation pathname={pathname} isAdmin={isAdmin} />
             </div>
           </SheetContent>
         </Sheet>
 
         {/* Right Actions */}
         <div className="flex items-center gap-2">
+          {/* Notification Bell */}
+          {user && <NotificationBell />}
+
           {/* Cart Button */}
           <Button variant="ghost" size="icon" className="relative group" asChild>
             <Link href="/carrito">
@@ -150,7 +146,7 @@ export function Header() {
                     Mis Solicitudes
                   </Link>
                 </DropdownMenuItem>
-                {/* ✅ Panel admin en el menú desplegable */}
+                {/* Panel admin en el menú desplegable */}
                 {isAdmin && (
                   <>
                     <DropdownMenuSeparator />
@@ -163,8 +159,15 @@ export function Header() {
                   </>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={logout} 
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/notifications">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Configuración
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={logout}
                   className="text-destructive focus:text-destructive"
                 >
                   <LogOut className="mr-2 h-4 w-4" />

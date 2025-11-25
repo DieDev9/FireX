@@ -19,7 +19,7 @@ export type Product = {
   updatedAt?: string;
 };
 
-// Category types
+// Category typess
 export type Category = {
   id: string;
   name: string;
@@ -80,8 +80,8 @@ export type ServiceRequestStatus =
   | "FINALIZADO";
 
 export type ExtinguisherType = "ABC" | "CO2" | "H2O" | "K";
-export type ExtinguisherState = "OPERATIVO" | "DESCARGADO" | "VENCIDO";
-export type TimeSlot = "MANANA" | "TARDE";
+export type ExtinguisherState = "Operativo" | "Descargado" | "Vencido";
+export type TimeSlot = "Mañana" | "Tarde";
 
 export type ServiceRequest = {
   id: string;
@@ -89,9 +89,9 @@ export type ServiceRequest = {
   userId: string;
   userEmail: string;      // importante: el backend lo envía así
   tipo: string;           // ABC | CO2 | H2O | K
-  estadoExtintor: string; // OPERATIVO | DESCARGADO | VENCIDO
+  estadoExtintor: string; // Operativo | Descargado | Vencido
   fecha: string;          // YYYY-MM-DD
-  franja: string;         // MAÑANA | TARDE
+  franja: string;         // Mañana | Tarde
   direccion: string;
   telefono: string;
   observaciones?: string;
@@ -115,6 +115,7 @@ export type ServiceRequestCreate = {
   direccion: string;
   telefono: string;
   observaciones?: string;
+  emailHtml?: string;
 };
 
 // Healthcheck

@@ -7,7 +7,7 @@ import com.diedev.firex.dto.response.ServiceRequestResponse;
 import java.util.List;
 
 public interface IServiceRequestService {
-    ServiceRequestResponse createRequest(String userId, String userEmail, ServiceRequestRequest request);
+    ServiceRequestResponse createRequest(String userId, String userEmail, ServiceRequestRequest request, String emailHtml);
     ServiceRequestResponse getRequestById(String id);
     ServiceRequestResponse getRequestByRequestId(String requestId);
     List<ServiceRequestResponse> getRequestsByUserEmail(String userEmail);

@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { FeatureCard } from '@/components/FeatureCard';
 import Link from 'next/link';
 import { Flame, Shield, Wrench, TrendingUp, CheckCircle, Clock, Award, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -96,44 +97,30 @@ export default function HomePage() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <Card className="border-2 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group animate-scale-in overflow-hidden relative" style={{ animationDelay: '0.1s' }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <CardContent className="p-8 relative">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
-                    <Shield className="h-7 w-7 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">Equipos Certificados</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Todos nuestros productos cumplen con las normas internacionales ISO y están respaldados por garantía total.
-                  </p>
-                </CardContent>
-              </Card>
+              <FeatureCard
+                icon={Shield}
+                title="Equipos Certificados"
+                description="Todos nuestros productos cumplen con las normas internacionales ISO y están respaldados por garantía total."
+                delay="0.1s"
+                hoverColorClass="group-hover:text-primary"
+              />
 
-              <Card className="border-2 hover:border-accent/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group animate-scale-in overflow-hidden relative" style={{ animationDelay: '0.2s' }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <CardContent className="p-8 relative">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-accent to-accent/60 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
-                    <Wrench className="h-7 w-7 text-accent-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3 group-hover:text-accent transition-colors">Servicio Técnico</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Recarga y mantenimiento profesional con técnicos certificados y seguimiento en tiempo real de tu solicitud.
-                  </p>
-                </CardContent>
-              </Card>
+              <FeatureCard
+                icon={Wrench}
+                title="Servicio Técnico"
+                description="Recarga y mantenimiento profesional con técnicos certificados y seguimiento en tiempo real de tu solicitud."
+                delay="0.2s"
+                hoverColorClass="group-hover:text-accent"
+                iconColorClass="text-accent-foreground"
+              />
 
-              <Card className="border-2 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 group animate-scale-in overflow-hidden relative" style={{ animationDelay: '0.3s' }}>
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                <CardContent className="p-8 relative">
-                  <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-lg">
-                    <TrendingUp className="h-7 w-7 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors">Mejor Precio</h3>
-                  <p className="text-muted-foreground leading-relaxed">
-                    Calidad profesional a precios competitivos. Invertir en seguridad nunca fue tan accesible y confiable.
-                  </p>
-                </CardContent>
-              </Card>
+              <FeatureCard
+                icon={TrendingUp}
+                title="Mejor Precio"
+                description="Calidad profesional a precios competitivos. Invertir en seguridad nunca fue tan accesible y confiable."
+                delay="0.3s"
+                hoverColorClass="group-hover:text-primary"
+              />
             </div>
           </div>
         </section>
@@ -143,7 +130,7 @@ export default function HomePage() {
           <div className="container mx-auto px-4 relative">
             <Card className="border-2 border-primary/20 overflow-hidden shadow-2xl animate-scale-in bg-gradient-to-br from-card via-card to-muted/30">
               <div className="relative p-12 md:p-16 text-center overflow-hidden">
-                {/* Efectos de fondo mejorados */}
+
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-accent/10 to-transparent" />
                 <div className="absolute top-10 left-20 h-40 w-40 bg-primary/20 rounded-full blur-3xl animate-float" />
                 <div className="absolute bottom-10 right-20 h-52 w-52 bg-accent/20 rounded-full blur-3xl animate-float" style={{ animationDelay: '1.5s' }} />

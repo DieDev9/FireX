@@ -75,8 +75,9 @@ export function AnimatedBackground() {
         ctx.fill();
 
         // Draw connections
-        particles.forEach((particle2, j) => {
-          if (i === j) return;
+        // Draw connections
+        for (let j = i + 1; j < particles.length; j++) {
+          const particle2 = particles[j];
           const dx = particle.x - particle2.x;
           const dy = particle.y - particle2.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
@@ -90,7 +91,7 @@ export function AnimatedBackground() {
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
-        });
+        }
 
         // Pulse effect
         particle.opacity = 0.2 + Math.sin(Date.now() * 0.001 + i) * 0.3;

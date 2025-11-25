@@ -5,8 +5,6 @@ import com.diedev.firex.dto.response.ApiResponse;
 import com.diedev.firex.dto.response.CategoryResponse;
 import com.diedev.firex.service.interfaces.ICategoryService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,13 +15,24 @@ import java.util.List;
  * Controlador REST para gestión de categorías
  * Base URL: /api/categories
  */
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Controlador REST para gestión de categorías
+ * Base URL: /api/categories
+ */
 @RestController
 @RequestMapping("/api/categories")
-@RequiredArgsConstructor
 public class CategoryController {
 
+    private static final Logger log = LoggerFactory.getLogger(CategoryController.class);
+
     private final ICategoryService categoryService;
+
+    public CategoryController(ICategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     /**
      * GET /api/categories

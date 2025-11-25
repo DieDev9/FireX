@@ -11,8 +11,6 @@ import com.diedev.firex.models.ServiceRequest;
 import com.diedev.firex.models.StatusTimeline;
 import com.diedev.firex.repositories.ServiceRequestRepository;
 import com.diedev.firex.service.interfaces.IServiceRequestService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,28 +24,41 @@ import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de solicitudes de recarga
- * ✅ ARREGLADO: Agregadas validaciones de negocio que faltaban
+ * Agregados validaciones de negocio que faltaban
  */
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
-@RequiredArgsConstructor
 public class ServiceRequestServiceImpl implements IServiceRequestService {
 
+    private static final Logger log = LoggerFactory.getLogger(ServiceRequestServiceImpl.class);
+
     private final ServiceRequestRepository serviceRequestRepository;
+    private final com.diedev.firex.service.interfaces.NotificationService notificationService;
+    private final com.diedev.firex.service.interfaces.EmailService emailService;
+
+    public ServiceRequestServiceImpl(ServiceRequestRepository serviceRequestRepository,
+                                     com.diedev.firex.service.interfaces.NotificationService notificationService,
+                                     com.diedev.firex.service.interfaces.EmailService emailService) {
+        this.serviceRequestRepository = serviceRequestRepository;
+        this.notificationService = notificationService;
+        this.emailService = emailService;
+    }
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @Override
     @Transactional
-    public ServiceRequestResponse createRequest(String userId, String userEmail, ServiceRequestRequest request) {
+    public ServiceRequestResponse createRequest(String userId, String userEmail, ServiceRequestRequest request, String emailHtml) {
         log.info("Creando solicitud de servicio para: {}", userEmail);
 
-        // ✅ VALIDACIÓN 1: Fecha no puede ser en el pasado
+        // Validación: Fecha no puede ser en el pasado
         validateFutureDate(request.getFecha());
 
-        // ✅ VALIDACIÓN 2: Teléfono colombiano válido
+        // Validación: Teléfono colombiano válido
         validateColombianPhone(request.getTelefono());
 
-        // ✅ VALIDACIÓN 3: No permitir solicitudes duplicadas del mismo usuario en la misma fecha
+        // Validación: No permitir solicitudes duplicadas del mismo usuario en la misma fecha
         validateNoDuplicateRequest(userEmail, request.getFecha());
 
         // Generar requestId único con timestamp
@@ -79,7 +90,41 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
         serviceRequest.setTimeline(timeline);
 
         ServiceRequest saved = serviceRequestRepository.save(serviceRequest);
-        log.info("✅ Solicitud creada: {} para fecha: {}", saved.getRequestId(), saved.getFecha());
+        log.info("Solicitud creada: {} para fecha: {}", saved.getRequestId(), saved.getFecha());
+
+        // ENVIAR CORREO DE CONFIRMACIÓN
+        try {
+            String subject = "Confirmación de Solicitud - FireX #" + saved.getRequestId();
+            String htmlContent;
+            if (emailHtml != null && !emailHtml.isEmpty()) {
+                htmlContent = emailHtml;
+            } else {
+                htmlContent = String.format(
+                    "<h1>¡Solicitud Recibida!</h1>" +
+                    "<p>Hola,</p>" +
+                    "<p>Hemos recibido tu solicitud de servicio con el ID <strong>%s</strong>.</p>" +
+                    "<h3>Detalles:</h3>" +
+                    "<ul>" +
+                    "<li><strong>Tipo:</strong> %s</li>" +
+                    "<li><strong>Fecha:</strong> %s (%s)</li>" +
+                    "<li><strong>Dirección:</strong> %s</li>" +
+                    "</ul>" +
+                    "<p>Un técnico se pondrá en contacto contigo pronto.</p>" +
+                    "<br>" +
+                    "<p>Atentamente,<br>Equipo FireX</p>",
+                    saved.getRequestId(),
+                    saved.getTipo(),
+                    saved.getFecha(),
+                    saved.getFranja(),
+                    saved.getDireccion()
+                );
+            }
+            
+            emailService.sendHtmlEmail(userEmail, subject, htmlContent);
+        } catch (Exception e) {
+            log.error("No se pudo enviar el correo de confirmación: {}", e.getMessage());
+            // No lanzamos excepción para no revertir la creación de la solicitud
+        }
 
         return mapToServiceRequestResponse(saved);
     }
@@ -149,7 +194,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
         // Validar estado
         ServiceRequestStatus newStatus = parseStatus(request.getStatus());
 
-        // ✅ VALIDACIÓN: No permitir retroceder estados (excepto casos especiales)
+        // Validación: No permitir retroceder estados (excepto casos especiales)
         validateStatusTransition(serviceRequest.getStatus(), newStatus);
 
         // Actualizar estado
@@ -164,7 +209,21 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
         serviceRequest.getTimeline().add(timelineEntry);
 
         ServiceRequest updated = serviceRequestRepository.save(serviceRequest);
-        log.info("✅ Estado actualizado: {} -> {}", id, newStatus);
+        log.info("Estado actualizado: {} -> {}", id, newStatus);
+
+        // NOTIFICACIÓN AUTOMÁTICA
+        try {
+            com.diedev.firex.models.Notification notification = new com.diedev.firex.models.Notification();
+            notification.setTitle("Actualización de Servicio");
+            notification.setMessage("Tu solicitud " + updated.getRequestId() + " ha cambiado a estado: " + newStatus);
+            notification.setType(com.diedev.firex.enums.NotificationType.SERVICE_STATUS_CHANGED);
+            notification.setPriority(com.diedev.firex.enums.NotificationPriority.MEDIUM);
+            notification.setActionUrl("/requests/" + updated.getId());
+            
+            notificationService.sendNotification(updated.getUserId(), notification);
+        } catch (Exception e) {
+            log.error("Error enviando notificación automática: {}", e.getMessage());
+        }
 
         return mapToServiceRequestResponse(updated);
     }
@@ -177,7 +236,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
         ServiceRequest request = serviceRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Solicitud", "id", id));
 
-        // ✅ VALIDACIÓN: Solo permitir eliminar solicitudes PENDIENTES o FINALIZADAS
+        // Validación: Solo permitir eliminar solicitudes PENDIENTES o FINALIZADAS
         if (request.getStatus() != ServiceRequestStatus.PENDIENTE &&
                 request.getStatus() != ServiceRequestStatus.FINALIZADO) {
             throw new BadRequestException(
@@ -187,7 +246,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
         }
 
         serviceRequestRepository.deleteById(id);
-        log.info("✅ Solicitud eliminada exitosamente: {}", id);
+        log.info("Solicitud eliminada exitosamente: {}", id);
     }
 
     @Override
@@ -200,7 +259,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
     // ========== MÉTODOS DE VALIDACIÓN ==========
 
     /**
-     * ✅ Valida que la fecha sea futura (no pasada)
+     * Valida que la fecha sea futura (no pasada)
      */
     private void validateFutureDate(String fechaStr) {
         try {
@@ -214,7 +273,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
                 );
             }
 
-            // ✅ Opcional: No permitir fechas muy lejanas (ej: más de 3 meses)
+            // Opcional: No permitir fechas muy lejanas (ej: más de 3 meses)
             LocalDate maxFecha = hoy.plusMonths(3);
             if (fecha.isAfter(maxFecha)) {
                 throw new BadRequestException(
@@ -228,7 +287,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
     }
 
     /**
-     * ✅ Valida teléfono colombiano (10 dígitos, empieza con 3)
+     * Valida teléfono colombiano (10 dígitos, empieza con 3)
      */
     private void validateColombianPhone(String phone) {
         if (!phone.matches("^3\\d{9}$")) {
@@ -240,7 +299,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
     }
 
     /**
-     * ✅ Valida que no exista solicitud duplicada del mismo usuario en la misma fecha
+     * Valida que no exista solicitud duplicada del mismo usuario en la misma fecha
      */
     private void validateNoDuplicateRequest(String userEmail, String fecha) {
         List<ServiceRequest> existing = serviceRequestRepository.findByUserEmailAndStatus(
@@ -260,7 +319,7 @@ public class ServiceRequestServiceImpl implements IServiceRequestService {
     }
 
     /**
-     * ✅ Valida transiciones de estado permitidas
+     * Valida transiciones de estado permitidas
      */
     private void validateStatusTransition(ServiceRequestStatus currentStatus, ServiceRequestStatus newStatus) {
         // PENDIENTE -> cualquier estado (OK)

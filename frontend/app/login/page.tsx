@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Link from 'next/link';
-import { login as apiLogin } from '@/lib/api-client';
+import { auth } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
 import { ValidatedInput } from '@/components/ValidatedInput';
 import { validateLoginForm, validateRegisterForm, validators } from '@/lib/validators';
@@ -16,7 +16,7 @@ import type { RegisterRequest, ApiResponse, UserResponse } from '@/types/api';
 // Helper para hacer llamadas directas
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
   const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8066';
-  
+
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...options,
     headers: {
@@ -26,12 +26,12 @@ async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ 
-      message: `HTTP error! status: ${response.status}` 
+    const error = await response.json().catch(() => ({
+      message: `HTTP error! status: ${response.status}`
     }));
     throw new Error(error.message || `Error ${response.status}`);
   }
-  
+
   return response.json();
 }
 
@@ -56,7 +56,7 @@ function LoginContent() {
 
     // ✅ VALIDAR ANTES DE ENVIAR
     const validation = validateLoginForm(loginEmail, loginPassword);
-    
+
     if (!validation.isValid) {
       const firstError = Object.values(validation.errors)[0];
       toast({
@@ -71,33 +71,62 @@ function LoginContent() {
 
     try {
       console.log('🔐 Intentando login con:', loginEmail);
-      const response = await apiLogin(loginEmail, loginPassword);
-      
-      console.log('📦 Respuesta del servidor:', response);
-      
-      if (!response.user) {
-        throw new Error('No se recibió información del usuario');
+
+      // Usamos fetch directo para poder leer los headers
+      const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8066';
+      const res = await fetch(`${BASE_URL}/api/users/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error ${res.status}`);
       }
 
-      const token = response.token || (response as any).data?.token || 'dummy-token';
-      
-      console.log('✅ Login exitoso:', {
-        user: response.user.email,
-        role: response.user.role,
-        token: token ? '✓ Token recibido' : '✗ Sin token'
-      });
-      
-      authLogin(response.user, token);
-      
+      const data = await res.json();
+      console.log('📦 Body respuesta:', data);
+
+      // Intentar extraer token del Body
+      let token = data.token || data.data?.token || data.jwt;
+
+      // Si no está en el body, buscar en Headers
+      if (!token) {
+        const authHeader = res.headers.get('Authorization');
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          token = authHeader.substring(7);
+          console.log('🔑 Token encontrado en Header Authorization');
+        }
+      }
+
+      if (!token) {
+        console.error('❌ No se encontró token ni en Body ni en Headers');
+        toast({
+          title: 'Error de autenticación',
+          description: 'El servidor no devolvió un token. Revisa la consola.',
+          variant: 'destructive',
+        });
+        setIsLoggingIn(false);
+        return;
+      }
+
+      console.log('✅ Login exitoso. Token recuperado.');
+
+      // Construir objeto usuario si viene disperso
+      const user = data.user || data.data?.user || data;
+
+      authLogin(user, token);
+
       toast({
         title: 'Bienvenido',
-        description: `Hola ${response.user.name}!`,
+        description: `Hola ${user.name}!`,
       });
-      
+
       setTimeout(() => {
         router.push('/');
       }, 100);
-      
+
     } catch (error) {
       console.error('❌ Error en login:', error);
       toast({
@@ -126,7 +155,7 @@ function LoginContent() {
 
     if (!validation.isValid) {
       setIsRegistering(false);
-      
+
       // Mostrar todos los errores
       Object.entries(validation.errors).forEach(([field, error]) => {
         toast({
@@ -160,12 +189,12 @@ function LoginContent() {
           title: 'Registro exitoso',
           description: 'Ahora puedes iniciar sesión',
         });
-        
+
         // Cambiar a la pestaña de login y pre-llenar el email
         const loginTab = document.querySelector('[value="login"]') as HTMLElement;
         loginTab?.click();
         setLoginEmail(registerEmail);
-        
+
         // Limpiar campos de registro
         setRegisterName('');
         setRegisterEmail('');
@@ -195,14 +224,14 @@ function LoginContent() {
               Inicia sesión o crea una cuenta para continuar
             </CardDescription>
           </CardHeader>
-          
+
           <CardContent>
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
                 <TabsTrigger value="register">Registrarse</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4">
                   <ValidatedInput
@@ -234,7 +263,7 @@ function LoginContent() {
                   </Button>
                 </form>
               </TabsContent>
-              
+
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <ValidatedInput
@@ -248,7 +277,7 @@ function LoginContent() {
                     placeholder="Alejandro Santamaria"
                     required
                   />
-                  
+
                   <ValidatedInput
                     id="register-email"
                     label="Email"
@@ -260,7 +289,7 @@ function LoginContent() {
                     placeholder="alejandro@correo.uis.edu.co"
                     required
                   />
-                  
+
                   <ValidatedInput
                     id="register-password"
                     label="Contraseña"
@@ -274,7 +303,7 @@ function LoginContent() {
                     helperText="Tu contraseña debe tener al menos 6 caracteres"
                     showValidIcon={false}
                   />
-                  
+
                   <ValidatedInput
                     id="register-phone"
                     label="Teléfono"
@@ -288,7 +317,7 @@ function LoginContent() {
                     helperText="Debe ser un celular colombiano de 10 dígitos"
                     pattern="3[0-9]{9}"
                   />
-                  
+
                   <ValidatedInput
                     id="register-address"
                     label="Dirección"
@@ -300,7 +329,7 @@ function LoginContent() {
                     placeholder="Calle 123 #45-67, Bucaramanga"
                     required
                   />
-                  
+
                   <Button type="submit" className="w-full" disabled={isRegistering}>
                     {isRegistering ? 'Registrando...' : 'Crear Cuenta'}
                   </Button>
@@ -308,7 +337,7 @@ function LoginContent() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          
+
           <CardFooter>
             <p className="text-sm text-muted-foreground text-center w-full">
               Al continuar, aceptas nuestros{' '}

@@ -25,9 +25,12 @@ import {
 } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Search } from 'lucide-react';
-import * as api from '@/lib/api-client';
+import { products as productsApi, categories as categoriesApi } from '@/lib/api-client';
 import type { Product } from '@/types/api';
 import Image from 'next/image';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { productSchema, type ProductFormValues } from '@/lib/schemas';
 
 export default function AdminProductsPage() {
   const { user } = useAuth();
@@ -39,14 +42,20 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    price: '',
-    stock: '',
-    categoryId: '',
-    imageUrl: '',
+
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+      price: 0,
+      stock: 0,
+      categoryId: '',
+      imageUrl: '',
+    },
   });
+
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = form;
 
   useEffect(() => {
     if (!user) {
@@ -59,10 +68,10 @@ export default function AdminProductsPage() {
   const loadData = async () => {
     try {
       const [productsRes, categoriesRes] = await Promise.all([
-        api.getProducts(),
-        api.getCategories(),
+        productsApi.getAll(),
+        categoriesApi.getAll(),
       ]);
-      
+
       if (productsRes.success && productsRes.data) {
         setProducts(productsRes.data);
       }
@@ -80,22 +89,15 @@ export default function AdminProductsPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
+  const onSubmit = async (data: ProductFormValues) => {
     try {
       const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        stock: parseInt(formData.stock),
-        categoryId: formData.categoryId,
-        imageUrl: formData.imageUrl || '/diverse-products-still-life.png',
+        ...data,
+        imageUrl: data.imageUrl || '/diverse-products-still-life.png',
       };
 
       if (editingProduct) {
-        const response = await api.updateProduct(editingProduct.id, productData);
+        const response = await productsApi.update(editingProduct.id, productData);
         if (response.success) {
           toast({
             title: 'Éxito',
@@ -103,7 +105,7 @@ export default function AdminProductsPage() {
           });
         }
       } else {
-        const response = await api.createProduct(productData);
+        const response = await productsApi.create(productData);
         if (response.success) {
           toast({
             title: 'Éxito',
@@ -121,8 +123,6 @@ export default function AdminProductsPage() {
         description: 'Error al guardar el producto',
         variant: 'destructive',
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -130,7 +130,7 @@ export default function AdminProductsPage() {
     if (!confirm('¿Estás seguro de eliminar este producto?')) return;
 
     try {
-      const response = await api.deleteProduct(id);
+      const response = await productsApi.delete(id);
       if (response.success) {
         toast({
           title: 'Éxito',
@@ -149,11 +149,11 @@ export default function AdminProductsPage() {
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
-    setFormData({
+    reset({
       name: product.name,
       description: product.description,
-      price: product.price.toString(),
-      stock: product.stock.toString(),
+      price: product.price,
+      stock: product.stock,
       categoryId: product.categoryId,
       imageUrl: product.imageUrl || '',
     });
@@ -162,11 +162,11 @@ export default function AdminProductsPage() {
 
   const resetForm = () => {
     setEditingProduct(null);
-    setFormData({
+    reset({
       name: '',
       description: '',
-      price: '',
-      stock: '',
+      price: 0,
+      stock: 0,
       categoryId: '',
       imageUrl: '',
     });
@@ -193,7 +193,10 @@ export default function AdminProductsPage() {
             Administra el catálogo de productos
           </p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="h-4 w-4 mr-2" />
@@ -206,30 +209,32 @@ export default function AdminProductsPage() {
                 {editingProduct ? 'Editar Producto' : 'Nuevo Producto'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nombre *</Label>
                 <Input
                   id="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
+                  placeholder="Nombre del producto"
+                  {...register('name')}
+                  disabled={isSubmitting}
                 />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="description">Descripción *</Label>
                 <Textarea
                   id="description"
-                  required
                   rows={3}
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
+                  placeholder="Descripción detallada"
+                  {...register('description')}
+                  disabled={isSubmitting}
                 />
+                {errors.description && (
+                  <p className="text-sm text-destructive">{errors.description.message}</p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -239,12 +244,13 @@ export default function AdminProductsPage() {
                     id="price"
                     type="number"
                     step="0.01"
-                    required
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: e.target.value })
-                    }
+                    placeholder="0.00"
+                    {...register('price')}
+                    disabled={isSubmitting}
                   />
+                  {errors.price && (
+                    <p className="text-sm text-destructive">{errors.price.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -252,12 +258,13 @@ export default function AdminProductsPage() {
                   <Input
                     id="stock"
                     type="number"
-                    required
-                    value={formData.stock}
-                    onChange={(e) =>
-                      setFormData({ ...formData, stock: e.target.value })
-                    }
+                    placeholder="0"
+                    {...register('stock')}
+                    disabled={isSubmitting}
                   />
+                  {errors.stock && (
+                    <p className="text-sm text-destructive">{errors.stock.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -265,12 +272,9 @@ export default function AdminProductsPage() {
                 <Label htmlFor="categoryId">Categoría *</Label>
                 <select
                   id="categoryId"
-                  required
                   className="w-full rounded-md border border-input bg-background px-3 py-2"
-                  value={formData.categoryId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, categoryId: e.target.value })
-                  }
+                  {...register('categoryId')}
+                  disabled={isSubmitting}
                 >
                   <option value="">Seleccionar categoría</option>
                   {categories.map((cat) => (
@@ -279,6 +283,9 @@ export default function AdminProductsPage() {
                     </option>
                   ))}
                 </select>
+                {errors.categoryId && (
+                  <p className="text-sm text-destructive">{errors.categoryId.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -287,21 +294,23 @@ export default function AdminProductsPage() {
                   id="imageUrl"
                   type="url"
                   placeholder="https://ejemplo.com/imagen.jpg"
-                  value={formData.imageUrl}
-                  onChange={(e) =>
-                    setFormData({ ...formData, imageUrl: e.target.value })
-                  }
+                  {...register('imageUrl')}
+                  disabled={isSubmitting}
                 />
+                {errors.imageUrl && (
+                  <p className="text-sm text-destructive">{errors.imageUrl.message}</p>
+                )}
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" disabled={loading} className="flex-1">
-                  {loading ? 'Guardando...' : 'Guardar Producto'}
+                <Button type="submit" disabled={isSubmitting} className="flex-1">
+                  {isSubmitting ? 'Guardando...' : 'Guardar Producto'}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setIsDialogOpen(false)}
+                  disabled={isSubmitting}
                 >
                   Cancelar
                 </Button>
@@ -353,11 +362,10 @@ export default function AdminProductsPage() {
                     <TableCell>${product.price.toFixed(2)}</TableCell>
                     <TableCell>
                       <span
-                        className={`px-2 py-1 rounded text-xs ${
-                          product.stock < 10
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-green-100 text-green-800'
-                        }`}
+                        className={`px-2 py-1 rounded text-xs ${product.stock < 10
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-green-100 text-green-800'
+                          }`}
                       >
                         {product.stock}
                       </span>

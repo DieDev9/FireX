@@ -5,22 +5,25 @@ import com.diedev.firex.dto.response.ApiResponse;
 import com.diedev.firex.dto.response.CartResponse;
 import com.diedev.firex.service.interfaces.ICartService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controlador REST para gestión de carrito de compras
- * Base URL: /api/cart
- */
-@Slf4j
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 @RestController
 @RequestMapping("/api/cart")
-@RequiredArgsConstructor
 public class CartController {
 
+    private static final Logger log = LoggerFactory.getLogger(CartController.class);
+
     private final ICartService cartService;
+
+    public CartController(ICartService cartService) {
+        this.cartService = cartService;
+    }
 
     /**
      * GET /api/cart/{userId}

@@ -12,8 +12,6 @@ import com.diedev.firex.models.Producto;
 import com.diedev.firex.repositories.CartRepository;
 import com.diedev.firex.repositories.ProductRepository;
 import com.diedev.firex.service.interfaces.ICartService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +23,25 @@ import java.util.stream.Collectors;
 
 /**
  * Implementación del servicio de carrito de compras
- * ✅ ARREGLADO: Validaciones mejoradas y límites de cantidad
+ * Validaciones mejoradas y límites de cantidad
  */
-@Slf4j
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
-@RequiredArgsConstructor
 public class CartServiceImpl implements ICartService {
+
+    private static final Logger log = LoggerFactory.getLogger(CartServiceImpl.class);
 
     private final CartRepository cartRepository;
     private final ProductRepository productRepository;
 
-    // ✅ Constante: Límite máximo de items por producto en el carrito
+    public CartServiceImpl(CartRepository cartRepository, ProductRepository productRepository) {
+        this.cartRepository = cartRepository;
+        this.productRepository = productRepository;
+    }
+
+    // Constante: Límite máximo de items por producto en el carrito
     private static final int MAX_QUANTITY_PER_ITEM = 100;
     private static final int MAX_ITEMS_IN_CART = 50;
 
@@ -55,14 +61,14 @@ public class CartServiceImpl implements ICartService {
     public CartResponse addOrUpdateItem(String userId, CartItemRequest request) {
         log.info("Agregando/actualizando item en carrito del usuario: {}", userId);
 
-        // ✅ VALIDACIÓN 1: Cantidad razonable
+        // Validación: Cantidad razonable
         if (request.getQuantity() > MAX_QUANTITY_PER_ITEM) {
             throw new BadRequestException(
                     String.format("La cantidad máxima por producto es %d", MAX_QUANTITY_PER_ITEM)
             );
         }
 
-        // ✅ VALIDACIÓN 2: Producto existe y tiene stock ANTES de hacer cambios
+        // Validación: Producto existe y tiene stock antes de hacer cambios
         Producto producto = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new ResourceNotFoundException("Producto", "id", request.getProductId()));
 
@@ -85,7 +91,7 @@ public class CartServiceImpl implements ICartService {
         Cart cart = cartRepository.findByUserId(userId)
                 .orElseGet(() -> createEmptyCart(userId));
 
-        // ✅ VALIDACIÓN 3: Límite de items diferentes en el carrito
+        // Validación: Límite de items diferentes en el carrito
         if (cart.getItems().size() >= MAX_ITEMS_IN_CART) {
             Optional<CartItem> existingItem = cart.getItems().stream()
                     .filter(item -> item.getProductId().equals(request.getProductId()))
@@ -118,10 +124,10 @@ public class CartServiceImpl implements ICartService {
             }
 
             item.setQuantity(newQuantity);
-            item.setPrice(producto.getPrice()); // ✅ Actualizar precio por si cambió
+            item.setPrice(producto.getPrice()); // Actualizar precio por si cambió
             item.setSubtotal(producto.getPrice().multiply(BigDecimal.valueOf(newQuantity)));
 
-            log.info("✅ Item actualizado: {} (cantidad: {})", producto.getName(), newQuantity);
+            log.info("Item actualizado: {} (cantidad: {})", producto.getName(), newQuantity);
         } else {
             // Agregar nuevo item
             CartItem newItem = new CartItem();
@@ -132,7 +138,7 @@ public class CartServiceImpl implements ICartService {
             newItem.setSubtotal(producto.getPrice().multiply(BigDecimal.valueOf(request.getQuantity())));
 
             cart.getItems().add(newItem);
-            log.info("✅ Nuevo item agregado: {} (cantidad: {})", producto.getName(), request.getQuantity());
+            log.info("Nuevo item agregado: {} (cantidad: {})", producto.getName(), request.getQuantity());
         }
 
         // Recalcular totales
@@ -160,7 +166,7 @@ public class CartServiceImpl implements ICartService {
         recalculateCartTotals(cart);
 
         Cart savedCart = cartRepository.save(cart);
-        log.info("✅ Item eliminado del carrito: {}", productId);
+        log.info("Item eliminado del carrito: {}", productId);
 
         return mapToCartResponse(savedCart);
     }
@@ -178,7 +184,7 @@ public class CartServiceImpl implements ICartService {
         cart.setTotalPrice(BigDecimal.ZERO);
 
         cartRepository.save(cart);
-        log.info("✅ Carrito vaciado exitosamente: {}", userId);
+        log.info("Carrito vaciado exitosamente: {}", userId);
     }
 
     // ========== MÉTODOS HELPER ==========
@@ -194,7 +200,7 @@ public class CartServiceImpl implements ICartService {
         cart.setTotalPrice(BigDecimal.ZERO);
 
         Cart saved = cartRepository.save(cart);
-        log.info("✅ Carrito vacío creado para usuario: {}", userId);
+        log.info("Carrito vacío creado para usuario: {}", userId);
         return saved;
     }
 

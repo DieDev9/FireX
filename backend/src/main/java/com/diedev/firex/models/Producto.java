@@ -1,6 +1,5 @@
 package com.diedev.firex.models;
 
-import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -10,9 +9,8 @@ import java.math.BigDecimal;
 
 /**
  * Modelo de Producto con índices optimizados para búsquedas
- * ✅ ARREGLADO: Agregados índices para mejorar performance
+ * Agregados índices para mejorar performance
  */
-@Data
 @Document(collection = "products")
 @CompoundIndex(name = "category_stock_idx", def = "{'categoryId': 1, 'stock': -1}")
 @CompoundIndex(name = "name_category_idx", def = "{'name': 1, 'categoryId': 1}")
@@ -33,4 +31,52 @@ public class Producto {
 
     @Indexed
     private String categoryId;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public Integer getStock() {
+        return stock;
+    }
+
+    public void setStock(Integer stock) {
+        this.stock = stock;
+    }
+
+    public String getCategoryId() {
+        return categoryId;
+    }
+
+    public void setCategoryId(String categoryId) {
+        this.categoryId = categoryId;
+    }
 }

@@ -2,35 +2,20 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { NotificationProvider } from '@/context/NotificationContext'
 import { Toaster } from '@/components/ui/toaster'
 import { Header } from '@/components/Header'
 import { AnimatedBackground } from '@/components/AnimatedBackground'
+import QueryProvider from '@/components/providers/QueryProvider'
+import { ThemeProvider } from "@/components/theme-provider"
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'FireX - Equipos Contra Incendios',
-  description: 'Venta de equipos contra incendios y servicio de recarga de extintores',
-  generator: 'v0.app',
-  icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
-  },
-}
+  title: "FireX - Extintores y Seguridad",
+  description: "Venta y recarga de extintores certificados",
+};
 
 export default function RootLayout({
   children,
@@ -38,16 +23,27 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es" className="dark" suppressHydrationWarning data-scroll-behavior="smooth">
       <body className={`font-sans antialiased`}>
         <AnimatedBackground />
-        <AuthProvider>
-          <div className="relative z-10">
-            <Header />
-            {children}
-          </div>
-          <Toaster />
-        </AuthProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <div className="relative z-10">
+                  <Header />
+                  {children}
+                </div>
+                <Toaster />
+              </NotificationProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

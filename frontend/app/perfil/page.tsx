@@ -1,6 +1,7 @@
+// app/perfil/page.tsx - CON DEBUG DETALLADO
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -8,53 +9,73 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { toast } from 'sonner';
-import { updateProfile } from '@/lib/api-client';
-import { User, Mail, Phone, MapPin, Shield } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { User, Mail, Phone, MapPin, Shield, Loader2 } from 'lucide-react';
+import { users } from '@/lib/api-client';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { profileSchema, type ProfileFormValues } from '@/lib/schemas';
 
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
   const router = useRouter();
-  
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [address, setAddress] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      name: '',
+      phone: '',
+      address: '',
+    },
+  });
+
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting, isDirty } } = form;
 
   useEffect(() => {
     if (!user) {
       router.push('/login');
       return;
     }
-    
-    setName(user.name || '');
-    setPhone(user.phone || '');
-    setAddress(user.address || '');
-  }, [user, router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    reset({
+      name: user.name || '',
+      phone: user.phone || '',
+      address: user.address || '',
+    });
+  }, [user, router, reset]);
+
+  const onSubmit = async (data: ProfileFormValues) => {
     if (!user) return;
 
-    setIsLoading(true);
-
     try {
-      const response = await updateProfile(user.id, {
-        name,
-        phone: phone || undefined,
-        address: address || undefined,
-      });
+      const response = await users.updateProfile(user.id, data);
 
       if (response.success && response.data) {
         setUser(response.data);
-        toast.success('Perfil actualizado exitosamente');
+        reset(data); // Reset form with new values to clear isDirty
+
+        toast({
+          title: '✅ Perfil actualizado',
+          description: 'Tus cambios se guardaron exitosamente',
+        });
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Error al actualizar el perfil');
-    } finally {
-      setIsLoading(false);
+      toast({
+        title: 'Error al actualizar',
+        description: error instanceof Error ? error.message : 'No se pudo conectar con el servidor',
+        variant: 'destructive',
+      });
     }
+  };
+
+  const handleCancel = () => {
+    if (!user) return;
+    reset({
+      name: user.name || '',
+      phone: user.phone || '',
+      address: user.address || '',
+    });
   };
 
   if (!user) {
@@ -87,9 +108,9 @@ export default function ProfilePage() {
                   <p className="font-medium">{user.name}</p>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-primary/10">
                   <Mail className="h-5 w-5 text-primary" />
@@ -99,9 +120,9 @@ export default function ProfilePage() {
                   <p className="font-medium text-sm break-all">{user.email}</p>
                 </div>
               </div>
-              
+
               <Separator />
-              
+
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-primary/10">
                   <Shield className="h-5 w-5 text-primary" />
@@ -153,16 +174,18 @@ export default function ProfilePage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nombre Completo *</Label>
                   <Input
                     id="name"
                     placeholder="Tu nombre completo"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
+                    {...register('name')}
+                    disabled={isSubmitting}
                   />
+                  {errors.name && (
+                    <p className="text-sm text-destructive">{errors.name.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -184,10 +207,13 @@ export default function ProfilePage() {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+56 9 1234 5678"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="3001234567"
+                    {...register('phone')}
+                    disabled={isSubmitting}
                   />
+                  {errors.phone && (
+                    <p className="text-sm text-destructive">{errors.phone.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -195,23 +221,45 @@ export default function ProfilePage() {
                   <Input
                     id="address"
                     placeholder="Tu dirección"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    {...register('address')}
+                    disabled={isSubmitting}
                   />
+                  {errors.address && (
+                    <p className="text-sm text-destructive">{errors.address.message}</p>
+                  )}
                 </div>
 
                 <div className="flex gap-4">
-                  <Button type="submit" disabled={isLoading} className="flex-1">
-                    {isLoading ? 'Guardando...' : 'Guardar Cambios'}
+                  <Button
+                    type="submit"
+                    disabled={isSubmitting || !isDirty}
+                    className="flex-1"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Guardando...
+                      </>
+                    ) : (
+                      'Guardar Cambios'
+                    )}
                   </Button>
+
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.back()}
+                    onClick={handleCancel}
+                    disabled={isSubmitting || !isDirty}
                   >
                     Cancelar
                   </Button>
                 </div>
+
+                {isDirty && !isSubmitting && (
+                  <p className="text-sm text-muted-foreground text-center">
+                    Tienes cambios sin guardar
+                  </p>
+                )}
               </form>
             </CardContent>
           </Card>
