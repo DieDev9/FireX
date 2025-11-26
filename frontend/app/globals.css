@@ -120,6 +120,7 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground antialiased;
   }
@@ -129,165 +130,179 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   /* Added more advanced animations */
   .animate-fade-in {
     animation: fadeIn 0.8s ease-out forwards;
   }
-  
+
   .animate-slide-up {
     animation: slideUp 0.8s ease-out forwards;
   }
-  
+
   .animate-slide-in-left {
     animation: slideInLeft 0.6s ease-out forwards;
   }
-  
+
   .animate-slide-in-right {
     animation: slideInRight 0.6s ease-out forwards;
   }
-  
+
   .animate-scale-in {
     animation: scaleIn 0.5s ease-out forwards;
   }
-  
+
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
-  
+
   .animate-glow {
     animation: glow 2s ease-in-out infinite alternate;
   }
-  
+
   .animate-shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
-  
+
   .animate-pulse-slow {
     animation: pulseSlow 4s ease-in-out infinite;
   }
-  
+
   .animate-rotate-slow {
     animation: rotateSlow 20s linear infinite;
   }
-  
+
   @keyframes fadeIn {
     from {
       opacity: 0;
       transform: translateY(20px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  
+
   @keyframes slideUp {
     from {
       opacity: 0;
       transform: translateY(40px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
-  
+
   @keyframes slideInLeft {
     from {
       opacity: 0;
       transform: translateX(-40px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
     }
   }
-  
+
   @keyframes slideInRight {
     from {
       opacity: 0;
       transform: translateX(40px);
     }
+
     to {
       opacity: 1;
       transform: translateX(0);
     }
   }
-  
+
   @keyframes scaleIn {
     from {
       opacity: 0;
       transform: scale(0.9);
     }
+
     to {
       opacity: 1;
       transform: scale(1);
     }
   }
-  
+
   @keyframes float {
-    0%, 100% {
+
+    0%,
+    100% {
       transform: translateY(0);
     }
+
     50% {
       transform: translateY(-10px);
     }
   }
-  
+
   @keyframes glow {
     from {
       box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
     }
+
     to {
       box-shadow: 0 0 30px rgba(239, 68, 68, 0.6), 0 0 40px rgba(249, 115, 22, 0.3);
     }
   }
-  
+
   @keyframes shimmer {
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
   }
-  
+
   @keyframes pulseSlow {
-    0%, 100% {
+
+    0%,
+    100% {
       opacity: 0.6;
       transform: scale(1);
     }
+
     50% {
       opacity: 1;
       transform: scale(1.05);
     }
   }
-  
+
   @keyframes rotateSlow {
     from {
       transform: rotate(0deg);
     }
+
     to {
       transform: rotate(360deg);
     }
   }
-  
+
   .gradient-text {
     background: linear-gradient(135deg, #ef4444, #f97316);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .glass-effect {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
-  
+
   .dark .glass-effect {
     background: rgba(0, 0, 0, 0.4);
     backdrop-filter: blur(10px);
@@ -299,9 +314,20 @@
   html {
     scroll-behavior: smooth;
   }
-  
+
   *:focus-visible {
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
+  }
+
+  /* Hide Next.js dev indicator */
+  #devtools-indicator,
+  [data-nextjs-toast],
+  [data-next-badge-root],
+  [data-nextjs-dev-tools-button] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 }
