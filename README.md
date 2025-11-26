@@ -44,7 +44,6 @@ FireX es una plataforma completa que permite:
 - **Java 21** - Lenguaje de programación
 - **Spring Boot 3.3.5** - Framework principal
 - **MongoDB** - Base de datos NoSQL
-- **Spring Security** - Autenticación y autorización
 - **JWT (JSON Web Tokens)** - Gestión de sesiones
 - **Spring Mail** - Envío de correos electrónicos
 - **OpenAPI/Swagger** - Documentación de API
