@@ -243,12 +243,17 @@ public class CartServiceImpl implements ICartService {
      * Mapea CartItem a CartItemResponse
      */
     private CartItemResponse mapToCartItemResponse(CartItem item) {
+        String imageUrl = productRepository.findById(item.getProductId())
+                .map(Producto::getImageUrl)
+                .orElse(null);
+
         return CartItemResponse.builder()
                 .productId(item.getProductId())
                 .productName(item.getProductName())
                 .price(item.getPrice())
                 .quantity(item.getQuantity())
                 .subtotal(item.getSubtotal())
+                .imageUrl(imageUrl)
                 .build();
     }
 }

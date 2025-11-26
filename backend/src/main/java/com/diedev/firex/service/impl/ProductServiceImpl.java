@@ -93,6 +93,7 @@ public class ProductServiceImpl implements IProductService {
         producto.setPrice(request.getPrice());
         producto.setStock(request.getStock());
         producto.setCategoryId(request.getCategoryId());
+        producto.setImageUrl(request.getImageUrl());
 
         Producto savedProduct = productRepository.save(producto);
         log.info("Producto creado con ID: {}", savedProduct.getId());
@@ -110,11 +111,14 @@ public class ProductServiceImpl implements IProductService {
 
         // Validar categoría si cambió
         Categoria categoria;
-        if (!producto.getCategoryId().equals(request.getCategoryId())) {
-            categoria = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", request.getCategoryId()));
+        String currentCategoryId = producto.getCategoryId();
+        String newCategoryId = request.getCategoryId();
+
+        if (currentCategoryId == null || !currentCategoryId.equals(newCategoryId)) {
+            categoria = categoryRepository.findById(newCategoryId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Categoría", "id", newCategoryId));
         } else {
-            categoria = categoryRepository.findById(request.getCategoryId()).orElse(null);
+            categoria = categoryRepository.findById(newCategoryId).orElse(null);
         }
 
         // Validar nombre duplicado si cambió
@@ -133,6 +137,7 @@ public class ProductServiceImpl implements IProductService {
         producto.setPrice(request.getPrice());
         producto.setStock(request.getStock());
         producto.setCategoryId(request.getCategoryId());
+        producto.setImageUrl(request.getImageUrl());
 
         Producto updatedProduct = productRepository.save(producto);
         log.info("Producto actualizado exitosamente: {}", updatedProduct.getName());
@@ -273,6 +278,7 @@ public class ProductServiceImpl implements IProductService {
                 .price(producto.getPrice())
                 .stock(producto.getStock())
                 .category(categoria != null ? mapToCategoryResponse(categoria) : null)
+                .imageUrl(producto.getImageUrl())
                 .build();
     }
 
@@ -287,6 +293,7 @@ public class ProductServiceImpl implements IProductService {
                 .price(producto.getPrice())
                 .stock(producto.getStock())
                 .category(categoria != null ? mapToCategoryResponse(categoria) : null)
+                .imageUrl(producto.getImageUrl())
                 .build();
     }
 

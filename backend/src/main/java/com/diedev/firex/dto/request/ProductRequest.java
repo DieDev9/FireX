@@ -36,6 +36,8 @@ public class ProductRequest {
     @NotBlank(message = "La categoría es requerida")
     private String categoryId;
 
+    private String imageUrl;
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -50,4 +52,7 @@ public class ProductRequest {
 
     public String getCategoryId() { return categoryId; }
     public void setCategoryId(String categoryId) { this.categoryId = categoryId; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

@@ -57,6 +57,9 @@ export default function AdminProductsPage() {
 
   const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = form;
 
+  // DEBUG: Ver errores de validación
+  console.log('Form Errors:', errors);
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -90,14 +93,18 @@ export default function AdminProductsPage() {
   };
 
   const onSubmit = async (data: ProductFormValues) => {
+    console.log('🚀 onSubmit ejecutado con datos:', data);
     try {
       const productData = {
         ...data,
         imageUrl: data.imageUrl || '/diverse-products-still-life.png',
       };
+      console.log('📦 Datos a enviar:', productData);
 
       if (editingProduct) {
+        console.log('🔄 Actualizando producto:', editingProduct.id);
         const response = await productsApi.update(editingProduct.id, productData);
+        console.log('✅ Respuesta update:', response);
         if (response.success) {
           toast({
             title: 'Éxito',
@@ -105,7 +112,9 @@ export default function AdminProductsPage() {
           });
         }
       } else {
+        console.log('✨ Creando nuevo producto');
         const response = await productsApi.create(productData);
+        console.log('✅ Respuesta create:', response);
         if (response.success) {
           toast({
             title: 'Éxito',
@@ -118,6 +127,7 @@ export default function AdminProductsPage() {
       resetForm();
       loadData();
     } catch (error) {
+      console.error('❌ Error en onSubmit:', error);
       toast({
         title: 'Error',
         description: 'Error al guardar el producto',
@@ -154,7 +164,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: product.price,
       stock: product.stock,
-      categoryId: product.categoryId,
+      categoryId: product.categoryId || '', // Asegurar string vacío si es null
       imageUrl: product.imageUrl || '',
     });
     setIsDialogOpen(true);

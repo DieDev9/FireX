@@ -31,8 +31,8 @@ export default function HomePage() {
               </div>
 
               <h1 className="text-5xl md:text-7xl font-bold text-balance mb-6 leading-tight">
-                Protección Contra Incendios de{' '}
-                <span className="gradient-text animate-glow">Excelencia</span>
+                Protección de Excelencia contra {' '}
+                <span className="gradient-text animate-glow">Incendios</span>
               </h1>
 
               <p className="text-lg md:text-xl text-muted-foreground text-balance mb-10 leading-relaxed max-w-2xl mx-auto">

@@ -29,6 +29,8 @@ export default function Chatbot() {
     const handleSend = async () => {
         if (!input.trim() || isLoading) return;
 
+        console.log('[Chatbot] Enviando mensaje:', input);
+
         const userMessage: ChatMessage = {
             role: 'user',
             content: input,
@@ -45,7 +47,9 @@ export default function Chatbot() {
                 content: msg.content,
             }));
 
+            console.log('[Chatbot] Historial de mensajes:', history.length);
             const response = await chatbot.sendMessage(input, history);
+            console.log('[Chatbot] Respuesta recibida:', response.message.substring(0, 50) + '...');
 
             const assistantMessage: ChatMessage = {
                 role: 'assistant',
@@ -55,6 +59,7 @@ export default function Chatbot() {
 
             setMessages((prev) => [...prev, assistantMessage]);
         } catch (error) {
+            console.error('[Chatbot] Error al enviar mensaje:', error);
             const errorMessage: ChatMessage = {
                 role: 'assistant',
                 content: 'Lo siento, hubo un error al procesar tu mensaje. Por favor, intenta de nuevo.',
@@ -114,8 +119,8 @@ export default function Chatbot() {
                             >
                                 <div
                                     className={`max-w-[80%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
-                                            : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
+                                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white'
+                                        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
                                         }`}
                                 >
                                     <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>

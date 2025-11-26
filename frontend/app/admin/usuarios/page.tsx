@@ -38,11 +38,14 @@ export default function AdminUsersPage() {
 
   const loadUsers = async () => {
     try {
+      console.log('[Users] Cargando usuarios');
       const response = await usersApi.getAll();
       if (response.success && response.data) {
+        console.log('[Users] Usuarios cargados:', response.data.length);
         setUsers(response.data);
       }
     } catch (error) {
+      console.error('[Users] Error al cargar usuarios:', error);
       toast({
         title: 'Error',
         description: 'Error al cargar los usuarios',
@@ -57,8 +60,10 @@ export default function AdminUsersPage() {
     if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
 
     try {
+      console.log('[Users] Eliminando usuario:', id);
       const response = await usersApi.delete(id);
       if (response.success) {
+        console.log('[Users] Usuario eliminado exitosamente');
         toast({
           title: 'Éxito',
           description: 'Usuario eliminado',
@@ -66,6 +71,7 @@ export default function AdminUsersPage() {
         loadUsers();
       }
     } catch (error) {
+      console.error('[Users] Error al eliminar usuario:', error);
       toast({
         title: 'Error',
         description: 'Error al eliminar el usuario',

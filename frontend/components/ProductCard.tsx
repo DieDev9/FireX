@@ -25,6 +25,7 @@ export function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
 
     if (!user) {
+      console.log('[ProductCard] Usuario no autenticado, no se puede agregar al carrito');
       toast({
         title: 'Debes iniciar sesión',
         description: 'Inicia sesión para agregar productos al carrito',
@@ -35,14 +36,17 @@ export function ProductCard({ product }: ProductCardProps) {
 
     setIsAdding(true);
     try {
+      console.log('[ProductCard] Agregando producto al carrito:', { userId: user.id, productId: product.id, productName: product.name });
       const response = await cart.addItem(user.id, product.id, 1);
       if (response.success) {
+        console.log('[ProductCard] Producto agregado exitosamente al carrito');
         toast({
           title: 'Producto agregado',
           description: `${product.name} se agregó al carrito`,
         });
       }
     } catch (error) {
+      console.error('[ProductCard] Error al agregar producto al carrito:', error);
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'No se pudo agregar el producto',

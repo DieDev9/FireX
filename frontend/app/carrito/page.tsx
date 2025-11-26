@@ -205,15 +205,15 @@ export default function CartPage() {
                     <div className="flex gap-4">
                       <div className="relative h-24 w-24 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         <Image
-                          src="/diverse-products-still-life.png"
-                          alt={item.name}
+                          src={item.imageUrl || "/diverse-products-still-life.png"}
+                          alt={item.productName}
                           fill
                           className="object-cover"
                         />
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-lg mb-1">{item.name}</h3>
+                        <h3 className="font-semibold text-lg mb-1">{item.productName}</h3>
                         <p className="text-primary font-semibold mb-3">
                           ${item.price.toLocaleString()}
                         </p>

@@ -122,8 +122,10 @@ export default function ServiceRequestPage() {
     }
   };
 
-  // Obtener fecha mínima (hoy)
-  const today = new Date().toISOString().split('T')[0];
+  // Obtener fecha mínima (mañana)
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const minDateStr = tomorrow.toISOString().split('T')[0];
 
   // Obtener fecha máxima (3 meses)
   const maxDate = new Date();
@@ -204,10 +206,10 @@ export default function ServiceRequestPage() {
                   value={fecha}
                   onChange={setFecha}
                   validator={validators.date}
-                  errorMessage="La fecha debe ser hoy o en el futuro"
+                  errorMessage="La fecha debe ser a partir de mañana"
                   required
-                  min={today}
-                  helperText={`Selecciona una fecha entre hoy y ${maxDateStr}`}
+                  min={minDateStr}
+                  helperText={`Selecciona una fecha entre mañana y ${maxDateStr}`}
                 />
 
                 <div className="space-y-2">
@@ -217,8 +219,8 @@ export default function ServiceRequestPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Mañana">Mañana (9:00 - 13:00)</SelectItem>
-                      <SelectItem value="Tarde">Tarde (14:00 - 18:00)</SelectItem>
+                      <SelectItem value="Mañana">Jornada Mañana (8:00 AM - 12:00 PM)</SelectItem>
+                      <SelectItem value="Tarde">Jornada Tarde (2:00 PM - 6:00 PM)</SelectItem>
                     </SelectContent>
                   </Select>
                   {validationErrors.franja && (

@@ -29,10 +29,11 @@ export type Category = {
 // Cart types
 export type CartItem = {
   productId: string;
-  name: string;
+  productName: string;
   price: number;
   quantity: number;
   subtotal: number;
+  imageUrl?: string;
 };
 
 export type Cart = {

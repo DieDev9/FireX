@@ -49,9 +49,13 @@ export default function ProfilePage() {
     if (!user) return;
 
     try {
+      console.log('[Profile] Actualizando perfil para usuario:', user.id);
+      console.log('[Profile] Datos a enviar:', data);
+
       const response = await users.updateProfile(user.id, data);
 
       if (response.success && response.data) {
+        console.log('[Profile] Perfil actualizado exitosamente:', response.data);
         setUser(response.data);
         reset(data); // Reset form with new values to clear isDirty
 
@@ -61,6 +65,7 @@ export default function ProfilePage() {
         });
       }
     } catch (error) {
+      console.error('[Profile] Error al actualizar perfil:', error);
       toast({
         title: 'Error al actualizar',
         description: error instanceof Error ? error.message : 'No se pudo conectar con el servidor',

@@ -60,11 +60,14 @@ export default function AdminCategoriesPage() {
 
   const loadCategories = async () => {
     try {
+      console.log('[Categories] Cargando categorías');
       const response = await categoriesApi.getAll();
       if (response.success && response.data) {
+        console.log('[Categories] Categorías cargadas:', response.data.length);
         setCategories(response.data);
       }
     } catch (error) {
+      console.error('[Categories] Error al cargar categorías:', error);
       toast({
         title: 'Error',
         description: 'Error al cargar las categorías',
@@ -78,16 +81,20 @@ export default function AdminCategoriesPage() {
   const onSubmit = async (data: CategoryFormValues) => {
     try {
       if (editingCategory) {
+        console.log('[Categories] Actualizando categoría:', editingCategory.id, data);
         const response = await categoriesApi.update(editingCategory.id, data);
         if (response.success) {
+          console.log('[Categories] Categoría actualizada exitosamente');
           toast({
             title: 'Éxito',
             description: 'Categoría actualizada exitosamente',
           });
         }
       } else {
+        console.log('[Categories] Creando nueva categoría:', data);
         const response = await categoriesApi.create(data);
         if (response.success) {
+          console.log('[Categories] Categoría creada exitosamente');
           toast({
             title: 'Éxito',
             description: 'Categoría creada exitosamente',
@@ -99,6 +106,7 @@ export default function AdminCategoriesPage() {
       resetForm();
       loadCategories();
     } catch (error) {
+      console.error('[Categories] Error al guardar categoría:', error);
       toast({
         title: 'Error',
         description: 'Error al guardar la categoría',
@@ -111,8 +119,10 @@ export default function AdminCategoriesPage() {
     if (!confirm('¿Estás seguro de eliminar esta categoría?')) return;
 
     try {
+      console.log('[Categories] Eliminando categoría:', id);
       const response = await categoriesApi.delete(id);
       if (response.success) {
+        console.log('[Categories] Categoría eliminada exitosamente');
         toast({
           title: 'Éxito',
           description: 'Categoría eliminada',
@@ -120,6 +130,7 @@ export default function AdminCategoriesPage() {
         loadCategories();
       }
     } catch (error) {
+      console.error('[Categories] Error al eliminar categoría:', error);
       toast({
         title: 'Error',
         description: 'Error al eliminar la categoría',

@@ -9,15 +9,17 @@ public class CartItemResponse {
     private BigDecimal price;
     private Integer quantity;
     private BigDecimal subtotal;
+    private String imageUrl;
 
     public CartItemResponse() {}
 
-    public CartItemResponse(String productId, String productName, BigDecimal price, Integer quantity, BigDecimal subtotal) {
+    public CartItemResponse(String productId, String productName, BigDecimal price, Integer quantity, BigDecimal subtotal, String imageUrl) {
         this.productId = productId;
         this.productName = productName;
         this.price = price;
         this.quantity = quantity;
         this.subtotal = subtotal;
+        this.imageUrl = imageUrl;
     }
 
     public static CartItemResponseBuilder builder() {
@@ -39,12 +41,16 @@ public class CartItemResponse {
     public BigDecimal getSubtotal() { return subtotal; }
     public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
 
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
     public static class CartItemResponseBuilder {
         private String productId;
         private String productName;
         private BigDecimal price;
         private Integer quantity;
         private BigDecimal subtotal;
+        private String imageUrl;
 
         CartItemResponseBuilder() {}
 
@@ -53,9 +59,10 @@ public class CartItemResponse {
         public CartItemResponseBuilder price(BigDecimal price) { this.price = price; return this; }
         public CartItemResponseBuilder quantity(Integer quantity) { this.quantity = quantity; return this; }
         public CartItemResponseBuilder subtotal(BigDecimal subtotal) { this.subtotal = subtotal; return this; }
+        public CartItemResponseBuilder imageUrl(String imageUrl) { this.imageUrl = imageUrl; return this; }
 
         public CartItemResponse build() {
-            return new CartItemResponse(productId, productName, price, quantity, subtotal);
+            return new CartItemResponse(productId, productName, price, quantity, subtotal, imageUrl);
         }
     }
 }

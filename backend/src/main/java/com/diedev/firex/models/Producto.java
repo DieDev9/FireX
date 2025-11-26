@@ -32,6 +32,8 @@ public class Producto {
     @Indexed
     private String categoryId;
 
+    private String imageUrl;
+
     public String getId() {
         return id;
     }
@@ -78,5 +80,13 @@ public class Producto {
 
     public void setCategoryId(String categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

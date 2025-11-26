@@ -24,23 +24,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const loadSession = () => {
       try {
+        console.log('[Auth] Cargando sesión desde localStorage');
         const storedToken = localStorage.getItem('firex_token');
         const storedUser = localStorage.getItem('firex_user');
 
         if (storedToken && storedUser) {
           // 🛡️ FIX: Si el token es el antiguo "dummy-token", lo descartamos para obligar a re-login
           if (storedToken === 'dummy-token') {
-            console.warn('⚠️ Token inválido (dummy-token) detectado. Cerrando sesión para forzar re-autenticación.');
+            console.warn('[Auth] Token inválido (dummy-token) detectado. Cerrando sesión para forzar re-autenticación.');
             localStorage.removeItem('firex_token');
             localStorage.removeItem('firex_user');
             return;
           }
 
+          console.log('[Auth] Sesión restaurada exitosamente');
           setToken(storedToken);
           setUserState(JSON.parse(storedUser));
+        } else {
+          console.log('[Auth] No hay sesión guardada');
         }
       } catch (error) {
-        console.error('Error loading session:', error);
+        console.error('[Auth] Error loading session:', error);
         localStorage.removeItem('firex_token');
         localStorage.removeItem('firex_user');
       } finally {
@@ -52,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (userData: UserResponse, jwtToken: string) => {
+    console.log('[Auth] Login exitoso para usuario:', userData.email);
     setUserState(userData);
     setToken(jwtToken);
     localStorage.setItem('firex_user', JSON.stringify(userData));
@@ -59,6 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    console.log('[Auth] Cerrando sesión');
     setUserState(null);
     setToken(null);
     localStorage.removeItem('firex_user');
@@ -66,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const setUser = (userData: UserResponse) => {
+    console.log('[Auth] Actualizando datos de usuario:', userData.email);
     setUserState(userData);
     localStorage.setItem('firex_user', JSON.stringify(userData));
   };

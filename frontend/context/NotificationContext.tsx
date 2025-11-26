@@ -21,7 +21,6 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
     const { user, token } = useAuth();
-    console.log('NotificationProvider Auth State:', { user: user?.email, hasToken: !!token });
     const { toast } = useToast();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [preferences, setPreferences] = useState<NotificationPreferences | null>(null);
@@ -44,13 +43,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 } else if (data && Array.isArray(data.data)) {
                     setNotifications(data.data);
                 } else {
-                    console.error('Invalid notifications format:', data);
                     setNotifications([]);
                 }
             }
         } catch (error) {
-            console.error('Error fetching notifications:', error);
-
+            // Error fetching notifications
         }
     }, [user, token, BASE_URL]);
 
@@ -71,21 +68,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 }
             }
         } catch (error) {
-            console.error('Error fetching preferences:', error);
+            // Error fetching preferences
         }
     }, [user, token, BASE_URL]);
 
     // SSE Connection
     useEffect(() => {
-        console.log('SSE useEffect triggered. User:', user?.email, 'Token:', !!token);
-
         if (!user || !token) {
-            console.warn('No user or token, aborting SSE connection');
             return;
         }
 
         const streamUrl = `${BASE_URL}/api/notifications/stream/${user.id}`;
-        console.log('Attempting SSE connection to:', streamUrl);
 
         fetchNotifications();
         fetchPreferences();
@@ -102,25 +95,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 signal: controller.signal,
                 onopen(response) {
                     if (response.ok) {
-                        console.log('SSE connection established');
                         return Promise.resolve();
                     } else {
-                        console.error('SSE connection error:', response.statusText);
-                        return Promise.reject(); // Lanza error si no es 200 OK
+                        return Promise.reject();
                     }
                 },
                 onmessage(event) {
-                    console.log('SSE message received:', event.data);
-
                     // Ignorar mensajes de control o conexión
                     if (event.data === 'ping' || event.data.includes('Conexión SSE establecida')) {
-                        console.log('Control message received:', event.data);
                         return;
                     }
 
                     try {
                         const newNotification: Notification = JSON.parse(event.data);
-                        console.log('Notification processed:', newNotification);
                         setNotifications(prev => [newNotification, ...prev]);
 
                         // Show toast
@@ -136,22 +123,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                             duration: 5000,
                         });
                     } catch (error) {
-                        // Si no es JSON válido y no lo capturamos antes, lo logueamos como advertencia
-                        console.warn('Could not parse message as JSON:', event.data);
+                        // Could not parse message as JSON
                     }
                 },
                 onerror(error) {
-                    console.error('SSE error:', error);
-                    // No reintentar si es un error fatal, o dejar que la librería reintente
+                    // SSE error
                 },
                 onclose() {
-                    console.log('SSE connection closed by server');
+                    // SSE connection closed
                 }
-            }).catch(err => console.error('Error inicializando SSE:', err));
+            }).catch(err => { });
         });
 
         return () => {
-            console.log('Cleaning up SSE connection');
             controller.abort();
         };
     }, [user, token, fetchNotifications, fetchPreferences, toast, BASE_URL]);
@@ -167,7 +151,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 prev.map(n => n.id === id ? { ...n, read: true } : n)
             );
         } catch (error) {
-            console.error('Error marking as read:', error);
+            // Error marking as read
         }
     };
 
@@ -180,7 +164,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             });
             setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         } catch (error) {
-            console.error('Error marking all as read:', error);
+            // Error marking all as read
         }
     };
 
@@ -193,7 +177,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             });
             setNotifications([]);
         } catch (error) {
-            console.error('Error clearing notifications:', error);
+            // Error clearing notifications
         }
     };
 
@@ -216,7 +200,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
                 });
             }
         } catch (error) {
-            console.error('Error updating preferences:', error);
             toast({
                 title: "Error",
                 description: "No se pudieron guardar las preferencias.",

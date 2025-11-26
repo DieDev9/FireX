@@ -24,6 +24,11 @@ export default function ProductsPage() {
     return matchesSearch && matchesCategory;
   });
 
+  // Log cuando cambian los filtros
+  if (searchTerm || selectedCategory !== 'all') {
+    console.log('[Products] Filtros aplicados:', { searchTerm, selectedCategory, resultados: filteredProducts.length });
+  }
+
   const isLoading = isLoadingProducts || isLoadingCategories;
 
   return (

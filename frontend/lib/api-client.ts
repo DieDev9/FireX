@@ -15,6 +15,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8066';
 
 async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
   try {
+    console.log(`[API] ${options?.method || 'GET'} ${endpoint}`);
+
     // Recuperar token de localStorage si estamos en el cliente
     let token = null;
     if (typeof window !== 'undefined') {
@@ -28,6 +30,7 @@ async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
 
     if (token) {
       (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+      console.log('[API] Request con autenticación');
     }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, {
@@ -35,15 +38,21 @@ async function apiCall<T>(endpoint: string, options?: RequestInit): Promise<T> {
       headers,
     });
 
+    console.log(`[API] Response ${response.status} para ${endpoint}`);
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({
         message: `HTTP error! status: ${response.status}`
       }));
+      console.error(`[API] Error en ${endpoint}:`, error);
       throw new Error(error.message || `Error ${response.status}`);
     }
 
-    return response.json();
+    const data = await response.json();
+    console.log(`[API] Data recibida de ${endpoint}:`, data);
+    return data;
   } catch (error) {
+    console.error(`[API] Exception en ${endpoint}:`, error);
     if (error instanceof Error) {
       throw error;
     }
