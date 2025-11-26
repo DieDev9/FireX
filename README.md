@@ -31,12 +31,12 @@ FireX es una plataforma completa que permite:
 
 ## Integrantes del Equipo
 
-| Nombre | Rol | Funcionalidad CRUD desarrollada |
-|--------|-----|--------------------------------|
-| Giovanny Ojeda | Backend Developer | CRUD de Productos |
-| Alejandro Santamaría | Backend Developer | CRUD de Categorías |
-| Diego Fonseca | Fullstack Developer | CRUD de Usuarios y Login |
-| Todos los integrantes | Frontend | Maquetación y consumo de API |
+| Nombre | Rol | 
+|--------|-----|
+| Giovanny Ojeda | Backend Developer | 
+| Alejandro Santamaría | Backend Developer | 
+| Diego Fonseca | Fullstack Developer | 
+| Todos los integrantes | Frontend | 
 
 ## Tecnologías
 
