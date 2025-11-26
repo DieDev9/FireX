@@ -55,9 +55,6 @@ FireX es una plataforma completa que permite:
 - **TypeScript 5** - Tipado estático
 - **TailwindCSS 4.1.9** - Framework de estilos
 - **Radix UI** - Componentes accesibles
-- **TanStack Query 5.90.10** - Gestión de estado del servidor
-- **React Hook Form 7.60.0** - Gestión de formularios
-- **Zod 3.25.76** - Validación de esquemas
 - **React Email** - Templates de email
 
 ## Características
