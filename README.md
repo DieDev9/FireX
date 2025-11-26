@@ -130,7 +130,6 @@ FireX es una plataforma completa que permite:
 ### Chatbot con IA
 ![Chatbot](./images/chatbot.png)
 
-> **Nota:** Para agregar las capturas de pantalla, crea una carpeta `screenshots` en la raíz del proyecto y coloca las imágenes con los nombres indicados arriba.
 
 ## Requisitos Previos
 
